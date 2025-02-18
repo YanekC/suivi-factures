@@ -14,7 +14,7 @@ export default function RootLayout() {
     <SQLiteProvider databaseName="test.db">
       <ExpensesContext.Provider value={{ expenses: expenses, setExpense: setExpenses }}>
         <Stack>
-          <Stack.Screen name="tabs" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
       </ExpensesContext.Provider>

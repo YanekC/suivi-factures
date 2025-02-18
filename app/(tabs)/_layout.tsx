@@ -5,20 +5,20 @@ import React from 'react';
 export default function TabLayout() {
   return (
     <Tabs
-      initialRouteName='expenses'
+      initialRouteName='(expenses)'
       screenOptions={{
         headerShown: false
       }}>
 
       <Tabs.Screen
-        name="expenses"
+        name="(expenses)"
         options={{
           title: 'Accueil',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="house" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="import-export"
+        name="(import-export)"
         options={{
           title: 'Import/Export',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="import-export" color={color} />,
