@@ -4,13 +4,22 @@ export class Expense {
     amount: number;
     attachedFiles: Array<string>;
     id: string;
+    //True when you dont need to attach any file
+    noFile: boolean;
 
-    constructor(date: Date, title: string, amount: number, attachedFiles: Array<string>) {
+    constructor(date: Date, title: string, amount: number, attachedFiles?: Array<string>, noFile?: boolean) {
         this.date = date;
         this.title = title;
         this.amount = amount;
         this.attachedFiles = new Array();
-        attachedFiles.push.apply(attachedFiles);
+        if (attachedFiles) {
+            this.attachedFiles.concat(attachedFiles);
+        }
+        if (noFile) {
+            this.noFile = noFile
+        } else {
+            this.noFile = false;
+        }
         this.id = date.toISOString() + amount.toString();
         this.toString = this.toString
         this.getHumanReadableDate = this.getHumanReadableDate

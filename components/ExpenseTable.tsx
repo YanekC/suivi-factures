@@ -64,22 +64,14 @@ export function ExpenseTable() {
         return month.charAt(0).toUpperCase() + month.slice(1);
     }
 
-    function addFileToExpense(expenseToUpdate: Expense, fileName: string) {
-        expensesContext.setExpense(expensesContext.expenses.map(expense => {
-            if (expense.id === expenseToUpdate.id) {
-                return { ...expense, attachedFiles: [...expense.attachedFiles, fileName] } as Expense;
-            } else {
-                return expense;
-            }
-        }));
-    }
+
 
     return (
         <SectionList
             sections={transformExpensesToSections()}
             style={styles.container}
             renderItem={({ item }) => (
-                <ExpenseRow expense={item} updateExpenses={addFileToExpense} />
+                <ExpenseRow expense={item} />
             )}
             renderSectionHeader={({ section: { month } }) => (
                 <Text style={styles.monthHeader}>{month}</Text>

@@ -12,6 +12,11 @@ export function storeFileInAppLocalStorage(filePath: string, wantedFilePath: str
     return file.uri;
 }
 
+export function deleteFileFromAppLocalStorage(filePath: string) {
+    const file = new File(filePath);
+    file.delete();
+}
+
 export function readExpenseCsv(filePath: string): Array<Expense> {
     const file = new File(filePath);
     const expenses: Array<Expense> = []

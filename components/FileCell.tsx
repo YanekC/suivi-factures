@@ -3,36 +3,37 @@ import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {
-    onPress?: () => void;
     expenseFiles: Array<string>
     expenseId: string
+    noFileNeeded: boolean
 };
 
-export default function FileCell({ onPress, expenseFiles, expenseId }: Props) {
+export default function FileCell({ expenseFiles, expenseId, noFileNeeded }: Props) {
     let icon
     let color
-    if (expenseFiles.length === 0) {
+    if (expenseFiles.length !== 0) {
+        icon = <Text>{expenseFiles.length}</Text>
+        color = "#00cc00"
+    } else if (noFileNeeded) {
+        icon = <FontAwesome name="check" size={18} color="#25292e" />
+        color = "#00cc00"
+    } else {
         icon = <FontAwesome name="file" size={18} color="#25292e" />
         color = "#D84040"
     }
-    else {
-        icon = <Text>{expenseFiles.length}</Text>
-        color = "#00cc00"
-    }
     return (
-        <View
-            style={[
-                styles.buttonContainer
-            ]}>
-            <Link
-                href={{
-                    pathname: '/expense-config/[id]',
-                    params: { id: expenseId }
-                }}>
-                <Pressable style={[styles.button, { backgroundColor: color }]} onPress={onPress}>
-                    {icon}
-                </Pressable>
-            </Link>
+        <View style={[styles.buttonContainer]}>
+            <View style={[styles.button, { backgroundColor: color }]}>
+                <Link
+                    href={{
+                        pathname: '/(tabs)/(expenses)/[expenseId]',
+                        params: { expenseId: expenseId }
+                    }} asChild>
+                    <Pressable>
+                        {icon}
+                    </Pressable>
+                </Link>
+            </View>
         </View>
     );
 }

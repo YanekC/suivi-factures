@@ -1,5 +1,4 @@
 import ExpenseConfig from "@/components/ExpenseConfig";
-import { Stack } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 export default function ExpenseConfigScreen() {
