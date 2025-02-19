@@ -1,4 +1,4 @@
-import { ExpenseTable } from "@/components/ExpenseTable";
+import { ExpenseTable } from "@/components/expenses/ExpenseTable";
 import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

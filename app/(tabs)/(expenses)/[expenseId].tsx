@@ -1,4 +1,4 @@
-import ExpenseConfig from "@/components/ExpenseConfig";
+import ExpenseConfig from "@/components/expenses/ExpenseConfig";
 import { StyleSheet, View } from "react-native";
 
 export default function ExpenseConfigScreen() {

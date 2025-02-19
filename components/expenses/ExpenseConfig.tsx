@@ -6,7 +6,7 @@ import { Alert, Button, StyleSheet, Text, View } from "react-native";
 import * as DocumentPicker from 'expo-document-picker';
 import { deleteFileFromAppLocalStorage, storeFileInAppLocalStorage } from "@/helpers/FileHelper";
 import { Expense } from "@/model/Expense";
-import ExpenseFileRow from "./expenses/ExpenseFileRow";
+import ExpenseFileRow from "./ExpenseFileRow";
 
 export default function ExpenseConfig() {
     const styles = StyleSheet.create({
