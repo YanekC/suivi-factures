@@ -1,5 +1,5 @@
 import { SafeAreaView } from "react-native";
-import ImportExport from "@/components/ImportExport"
+import ImportExport from "@/components/import-export/ImportExport"
 import { Expense } from "@/model/Expense";
 
 type Props = {

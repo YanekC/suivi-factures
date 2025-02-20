@@ -3,13 +3,11 @@ import { Directory, File, Paths } from 'expo-file-system/next';
 
 
 export function storeFileInAppLocalStorage(filePath: string, wantedFilePath: string): string {
-    console.log(filePath)
+    let sanitizedWantedFilePath = wantedFilePath.replace(/[^a-z0-9.]/gi, '_').toLowerCase()
     const file = new File(filePath);
-    console.log(wantedFilePath)
-    const destination = new File(Paths.document, wantedFilePath);
-    console.log(file.uri)
+    const destination = new File(Paths.document, sanitizedWantedFilePath);
     file.copy(destination);
-    return file.uri;
+    return destination.uri;
 }
 
 export function deleteFileFromAppLocalStorage(filePath: string) {
@@ -24,8 +22,12 @@ export function readExpenseCsv(filePath: string): Array<Expense> {
     splitByLines.forEach((value) => {
         let splittedValue = value.split(';');
         try {
-            let newExpense = new Expense(parseDate(splittedValue[0]), splittedValue[1], parseAmount(splittedValue[2], splittedValue[3]), []);
-            expenses.push(newExpense);
+            let date = parseDate(splittedValue[0]);
+            let amount = parseAmount(splittedValue[2], splittedValue[3]);
+            if (Number.isNaN(date.getTime())) throw "Impossible de parser la date"
+            if (Number.isNaN(amount)) throw "Impossible de parser le montant"
+
+            expenses.push(new Expense(date, splittedValue[1], amount, []));
         } catch (error) {
             console.error(`Cannot import expense line ${value}. Reason : ${error}`);
         }

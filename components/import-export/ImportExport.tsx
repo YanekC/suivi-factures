@@ -7,6 +7,7 @@ import { readExpenseCsv } from "@/helpers/FileHelper";
 import { ExpensesContext } from "@/helpers/ExpenseContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
+import { importIntoDB } from "@/helpers/DbHelper";
 
 const styles = StyleSheet.create({
     container: {
@@ -52,7 +53,6 @@ export function ImportButton() {
     const db = useSQLiteContext();
     const expensesContext = useContext(ExpensesContext);
 
-    //TODO handle another view for validation without files
     function onFileSelectedHandler() {
         DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true })
             .then((value) => {
@@ -66,15 +66,10 @@ export function ImportButton() {
     //TODO : Better handle errors 
     function readAndImportFile(uri: string) {
         let expensesFromCSV = readExpenseCsv(uri);
-        let nextExpenses = expensesContext.expenses.concat();
-        expensesFromCSV.forEach(expenseFromCsv => {
-            if (nextExpenses.find(expense => expense.id === expenseFromCsv.id) === undefined) {
-                nextExpenses.push(expenseFromCsv);
-            }
-        });
-        //db.addAll(expensesFromCSV);
-        console.log(nextExpenses)
-        expensesContext.setExpense(nextExpenses)
+        importIntoDB(db, expensesFromCSV)
+            .then(importedExpenses =>
+                expensesContext.setExpense(expensesContext.expenses.concat(importedExpenses))
+            )
     }
 
     return (

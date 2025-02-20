@@ -3,11 +3,13 @@ import { Link, router } from "expo-router";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { ActivityIndicator, Button, Linking, ScrollView, StyleSheet, Text, View } from "react-native";
 import { getAccountsList, getBankList, getRequisitionLink, importExpensesFromAccount, Bank, Account, validateToken } from "@/helpers/GoCardLessHelper";
-import KeySetup from "@/components/go-card-less/KeySetup";
+import KeySetup from "@/components/import-export/go-card-less/KeySetup";
 import { ExpensesContext } from "@/helpers/ExpenseContext";
-import OpenURLButton from "@/components/go-card-less/OpenURLButton";
+import OpenURLButton from "@/components/import-export/go-card-less/OpenURLButton";
 import { getSecureStoredString } from "@/helpers/SecureStoreHelper";
 import { Expense } from "@/model/Expense";
+import { importIntoDB } from "@/helpers/DbHelper";
+import { useSQLiteContext } from "expo-sqlite";
 
 const styles = StyleSheet.create({
     header: {
@@ -22,6 +24,7 @@ const styles = StyleSheet.create({
 });
 
 export default function GoCardLessSetup() {
+    const db = useSQLiteContext();
 
     const [token, setToken] = useState('');
 
@@ -39,9 +42,6 @@ export default function GoCardLessSetup() {
 
     const [secretId, setSecretId] = useState('');
     const [secretKey, setSecretKey] = useState('');
-
-
-
 
     useEffect(() => {
         Promise.all([
@@ -106,13 +106,10 @@ export default function GoCardLessSetup() {
     }
 
     function updateExpense(newExpenses: Expense[]) {
-        let nextExpenses = expensesContext.expenses.concat();
-        newExpenses.forEach(newExpense => {
-            if (nextExpenses.find(expense => expense.id === newExpense.id) === undefined) {
-                nextExpenses.push(newExpense);
-            }
-        });
-        expensesContext.setExpense(nextExpenses)
+        importIntoDB(db, newExpenses)
+            .then(importedExpenses =>
+                expensesContext.setExpense(expensesContext.expenses.concat(importedExpenses))
+            )
     }
 
     return (

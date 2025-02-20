@@ -13,14 +13,17 @@ export class Expense {
         this.amount = amount;
         this.attachedFiles = new Array();
         if (attachedFiles) {
-            this.attachedFiles.concat(attachedFiles);
+            console.log("attachedFiles" + attachedFiles.length)
+            this.attachedFiles = attachedFiles.concat()
+
+            console.log("this.attachedFiles " + this.attachedFiles.length)
         }
         if (noFile) {
             this.noFile = noFile
         } else {
             this.noFile = false;
         }
-        this.id = date.toISOString() + amount.toString();
+        this.id = date.getTime() + title + amount.toString();
         this.toString = this.toString
         this.getHumanReadableDate = this.getHumanReadableDate
         this.getMonthKey = this.getMonthKey
@@ -43,5 +46,22 @@ export class Expense {
         return this.date.getFullYear() * 100 + this.date.getMonth();
     }
 
+    public getIdForFileName(): string {
+        return this.id.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    }
 
+
+}
+
+export function DbExpenseToExpense(dbExpense: DbExpense): Expense {
+    let files = dbExpense.attachedFiles === '' ? [] : dbExpense.attachedFiles.split(',')
+    return new Expense(new Date(dbExpense.date), dbExpense.title, dbExpense.amount, files, dbExpense.noFile === 1)
+}
+
+export type DbExpense = {
+    date: number;
+    title: string;
+    amount: number;
+    attachedFiles: string;
+    noFile: number;
 }

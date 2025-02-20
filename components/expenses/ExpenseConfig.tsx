@@ -7,6 +7,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import { deleteFileFromAppLocalStorage, storeFileInAppLocalStorage } from "@/helpers/FileHelper";
 import { Expense } from "@/model/Expense";
 import ExpenseFileRow from "./ExpenseFileRow";
+import { updateExpense } from "@/helpers/DbHelper";
+import { useSQLiteContext } from "expo-sqlite";
 
 export default function ExpenseConfig() {
     const styles = StyleSheet.create({
@@ -42,6 +44,7 @@ export default function ExpenseConfig() {
 
     const glob = useGlobalSearchParams();
     const local = useLocalSearchParams();
+    const db = useSQLiteContext();
 
     const expensesContext = useContext(ExpensesContext);
     const expense = expensesContext.expenses.find(value => value.id === local.expenseId) || new Expense(new Date(), 'Error', -1);
@@ -51,35 +54,45 @@ export default function ExpenseConfig() {
     console.log("Local:", local, "Global:", glob);
 
     function addFileToExpense(expenseToUpdate: Expense, fileName: string) {
-        expensesContext.setExpense(expensesContext.expenses.map(expense => {
-            if (expense.id === expenseToUpdate.id) {
-                return { ...expense, attachedFiles: [...expense.attachedFiles, fileName] } as Expense;
-            } else {
-                return expense;
-            }
-        }));
+        let newExpense = new Expense(expenseToUpdate.date, expenseToUpdate.title, expenseToUpdate.amount, expenseToUpdate.attachedFiles.concat([fileName]), expenseToUpdate.noFile);
+        updateExpense(db, newExpense).then((result) => {
+            expensesContext.setExpense(expensesContext.expenses.map(expense => {
+                if (expense.id === expenseToUpdate.id) {
+                    return newExpense as Expense;
+                } else {
+                    return expense;
+                }
+            }));
+        }).catch(console.error);
+
     }
 
     function removeFileToExpense(expenseToUpdate: Expense, fileName: string) {
-        expensesContext.setExpense(expensesContext.expenses.map(expense => {
-            if (expense.id === expenseToUpdate.id) {
-                let newFileArray = expense.attachedFiles.filter(file => file !== fileName);
-                return { ...expense, attachedFiles: newFileArray } as Expense;
-            } else {
-                return expense;
-            }
-        }));
+        let newFiles = expenseToUpdate.attachedFiles.filter(file => file !== fileName);
+        let newExpense = new Expense(expenseToUpdate.date, expenseToUpdate.title, expenseToUpdate.amount, newFiles, expenseToUpdate.noFile);
+        updateExpense(db, newExpense).then(() => {
+            expensesContext.setExpense(expensesContext.expenses.map(expense => {
+                if (expense.id === expenseToUpdate.id) {
+                    return newExpense as Expense;
+                } else {
+                    return expense;
+                }
+            }));
+        }).catch(console.error);
     }
 
     function setNoFileExpense(expenseToUpdate: Expense, noFile: boolean) {
-        setChecked(noFile);
-        expensesContext.setExpense(expensesContext.expenses.map(expense => {
-            if (expense.id === expenseToUpdate.id) {
-                return { ...expense, noFile: noFile } as Expense;
-            } else {
-                return expense;
-            }
-        }));
+        let newExpense = new Expense(expenseToUpdate.date, expenseToUpdate.title, expenseToUpdate.amount, expenseToUpdate.attachedFiles.concat(), noFile);
+        updateExpense(db, newExpense).then((result) => {
+            expensesContext.setExpense(expensesContext.expenses.map(expense => {
+                if (expense.id === expenseToUpdate.id) {
+                    return newExpense as Expense;
+                } else {
+                    return expense;
+                }
+            }));
+            setChecked(noFile);
+        }).catch(console.error);
     }
 
     function handleFileButtonPress() {
@@ -106,7 +119,7 @@ export default function ExpenseConfig() {
         <View style={styles.container}>
             <Stack.Screen options={{ title: "Dépense " + expense?.title }} />
             <Text style={styles.header}>Fichiers : </Text>
-            {expense?.attachedFiles.map(file => <ExpenseFileRow filePath={file} deleteFile={handleDeleteFile} />)}
+            {expense?.attachedFiles.map(file => <ExpenseFileRow key={file} filePath={file} deleteFile={handleDeleteFile} />)}
             <Button title="Ajouter un fichier" onPress={handleFileButtonPress}></Button>
             <Text style={styles.header}>Montant</Text>
             <Text>{expense?.amount} €</Text>

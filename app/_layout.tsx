@@ -11,7 +11,7 @@ export default function RootLayout() {
   const [expenses, setExpenses] = useState(new Array<Expense>())
 
   return (
-    <SQLiteProvider databaseName="test.db">
+    <SQLiteProvider databaseName="expense.db" assetSource={{ assetId: require('../assets/default.db') }}>
       <ExpensesContext.Provider value={{ expenses: expenses, setExpense: setExpenses }}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

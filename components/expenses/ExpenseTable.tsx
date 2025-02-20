@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text, View, SectionList, StatusBar, SectionListData } from 'react-native';
 import { ExpenseRow } from './ExpenseRow';
-import { Expense } from '@/model/Expense';
+import { DbExpense, DbExpenseToExpense as dbExpenseToExpense, Expense } from '@/model/Expense';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { ExpensesContext } from '@/helpers/ExpenseContext';
 
@@ -29,10 +29,13 @@ export function ExpenseTable() {
 
     useEffect(() => {
         async function setup() {
-            const result = await db.getAllAsync<Expense>('SELECT * FROM Expenses');
-            expensesContext.setExpense(result);
+            const result = await db.getAllAsync<DbExpense>('SELECT * FROM Expenses');
+
+            let mappedResult = result.map(dbExpenseToExpense)
+            console.log(mappedResult)
+            expensesContext.setExpense(mappedResult);
         }
-        setup();
+        setup().catch(error => console.error(error));
     }, []);
 
     function transformExpensesToSections() {
@@ -58,6 +61,7 @@ export function ExpenseTable() {
             });
         return expensesByMonth;
     }
+
     function getMonthString(monthKey: number) {
         let date = new Date(monthKey / 100, monthKey % 100)
         let month = date.toLocaleString('fr', { month: 'long', year: 'numeric' });
@@ -71,7 +75,7 @@ export function ExpenseTable() {
             sections={transformExpensesToSections()}
             style={styles.container}
             renderItem={({ item }) => (
-                <ExpenseRow expense={item} />
+                <ExpenseRow key={item.id} expense={item} />
             )}
             renderSectionHeader={({ section: { month } }) => (
                 <Text style={styles.monthHeader}>{month}</Text>
