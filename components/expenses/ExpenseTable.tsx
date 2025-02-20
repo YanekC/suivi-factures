@@ -30,9 +30,7 @@ export function ExpenseTable() {
     useEffect(() => {
         async function setup() {
             const result = await db.getAllAsync<DbExpense>('SELECT * FROM Expenses');
-
             let mappedResult = result.map(dbExpenseToExpense)
-            console.log(mappedResult)
             expensesContext.setExpense(mappedResult);
         }
         setup().catch(error => console.error(error));

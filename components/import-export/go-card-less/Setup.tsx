@@ -98,6 +98,8 @@ export default function GoCardLessSetup() {
         setIsLoadingExpense(true)
         importExpensesFromAccount(token, selectedAccount.uuid)
             .then((expenses) => {
+                return importIntoDB(db, expenses)
+            }).then((expenses) => {
                 updateExpense(expenses);
                 router.replace('/(tabs)');
             })

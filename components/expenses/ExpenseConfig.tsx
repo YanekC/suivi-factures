@@ -15,8 +15,8 @@ export default function ExpenseConfig() {
         container: {
             flex: 1,
             paddingTop: 10,
-            paddingLeft: 15,
-            paddingRight: 15,
+            paddingLeft: 5,
+            paddingRight: 5,
             width: '100%',
             backgroundColor: 'lavender',
             rowGap: 10
@@ -24,8 +24,7 @@ export default function ExpenseConfig() {
         header: {
             fontSize: 20,
             backgroundColor: 'lavender',
-            paddingTop: 15,
-            paddingLeft: 10
+            paddingTop: 15
         },
         input: {
             borderWidth: 1

@@ -13,10 +13,7 @@ export class Expense {
         this.amount = amount;
         this.attachedFiles = new Array();
         if (attachedFiles) {
-            console.log("attachedFiles" + attachedFiles.length)
             this.attachedFiles = attachedFiles.concat()
-
-            console.log("this.attachedFiles " + this.attachedFiles.length)
         }
         if (noFile) {
             this.noFile = noFile

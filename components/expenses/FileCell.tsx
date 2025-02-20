@@ -22,19 +22,20 @@ export default function FileCell({ expenseFiles, expenseId, noFileNeeded }: Prop
         color = "#D84040"
     }
     return (
-        <View style={[styles.buttonContainer]}>
-            <View style={[styles.button, { backgroundColor: color }]}>
-                <Link
-                    href={{
-                        pathname: '/(tabs)/(expenses)/[expenseId]',
-                        params: { expenseId: expenseId }
-                    }} asChild>
-                    <Pressable>
+        <Link
+            href={{
+                pathname: '/(tabs)/(expenses)/[expenseId]',
+                params: { expenseId: expenseId }
+            }} asChild>
+            <Pressable>
+                <View style={[styles.buttonContainer]}>
+                    <View style={[styles.button, { backgroundColor: color }]}>
+
                         {icon}
-                    </Pressable>
-                </Link>
-            </View>
-        </View>
+                    </View>
+                </View>
+            </Pressable>
+        </Link>
     );
 }
 
