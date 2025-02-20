@@ -50,8 +50,6 @@ export default function ExpenseConfig() {
 
     const [isChecked, setChecked] = useState(expense?.noFile);
 
-    console.log("Local:", local, "Global:", glob);
-
     function addFileToExpense(expenseToUpdate: Expense, fileName: string) {
         let newExpense = new Expense(expenseToUpdate.date, expenseToUpdate.title, expenseToUpdate.amount, expenseToUpdate.attachedFiles.concat([fileName]), expenseToUpdate.noFile);
         updateExpense(db, newExpense).then((result) => {

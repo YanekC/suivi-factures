@@ -20,7 +20,7 @@ export class Expense {
         } else {
             this.noFile = false;
         }
-        this.id = date.getTime() + title + amount.toString();
+        this.id = date.toISOString().slice(0, 10) + title + amount.toString();
         this.toString = this.toString
         this.getHumanReadableDate = this.getHumanReadableDate
         this.getMonthKey = this.getMonthKey
