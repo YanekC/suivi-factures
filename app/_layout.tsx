@@ -18,7 +18,7 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" />
         </Stack>
       </ExpensesContext.Provider>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
     </SQLiteProvider>
   );
 }

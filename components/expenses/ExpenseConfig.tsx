@@ -116,7 +116,8 @@ export default function ExpenseConfig() {
     }
     return (
         <View style={styles.container}>
-            <Stack.Screen options={{ title: "Dépense " + expense?.title }} />
+            <Stack.Screen options={{ title: "Dépense" }} />
+            <Text style={[styles.header, { fontSize: 24 }]}>{expense?.title}</Text>
             <Text style={styles.header}>Fichiers : </Text>
             {expense?.attachedFiles.map(file => <ExpenseFileRow key={file} filePath={file} deleteFile={handleDeleteFile} />)}
             <Button title="Ajouter un fichier" onPress={handleFileButtonPress}></Button>
