@@ -121,25 +121,6 @@ async function fetchRequisitionLink(secret: SecretCreds, bankId: string): Promis
             }));
 }
 
-async function saveSecure(key: string, value: string) {
-    await SecureStore.setItemAsync(key, value);
-}
-async function saveInsecure(key: string, value: any): Promise<void> {
-    return Storage.setItem(key, JSON.stringify(value));
-}
-async function retrieveInsecure(key: string): Promise<any | null> {
-    const value = await Storage.getItem(key);
-    if (value === null) return null;
-    return JSON.parse(value);
-}
-
-function isTokenExpired(jwt: string): boolean {
-    let token = JSON.parse(decode(jwt.split('.')[1]))
-    return Date.now() >= new Date(token.exp * 1000).getTime()
-}
-function decode(str: string): string {
-    return Buffer.from(str, 'base64').toString('binary');
-}
 
 export async function getAccountsList(secret: SecretCreds, requisitionId: string): Promise<Account[]> {
     return makeRequest(secret, `https://bankaccountdata.gocardless.com/api/v2/requisitions/${requisitionId}`, 'GET', {},
@@ -202,4 +183,24 @@ function toExpenses(transactionList: Array<any>): Expense[] {
             return new Expense(new Date(transaction.valueDate), transaction.remittanceInformationUnstructuredArray[0], transaction.transactionAmount.amount, [])
         }
     )
+}
+
+async function saveSecure(key: string, value: string) {
+    await SecureStore.setItemAsync(key, value);
+}
+async function saveInsecure(key: string, value: any): Promise<void> {
+    return Storage.setItem(key, JSON.stringify(value));
+}
+async function retrieveInsecure(key: string): Promise<any | null> {
+    const value = await Storage.getItem(key);
+    if (value === null) return null;
+    return JSON.parse(value);
+}
+
+function isTokenExpired(jwt: string): boolean {
+    let token = JSON.parse(decode(jwt.split('.')[1]))
+    return Date.now() >= new Date(token.exp * 1000).getTime()
+}
+function decode(str: string): string {
+    return Buffer.from(str, 'base64').toString('binary');
 }
