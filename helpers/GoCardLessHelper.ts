@@ -1,5 +1,8 @@
 import { Expense } from '@/model/Expense';
 import * as SecureStore from 'expo-secure-store';
+import { Alert } from 'react-native';
+import Storage from 'expo-sqlite/kv-store';
+import { Buffer } from "buffer";
 
 export type Bank = {
     id: string
@@ -18,7 +21,30 @@ export type Account = {
     uuid: string
 }
 
-export async function validateToken(secretId: string, secretKey: string): Promise<string> {
+export type Token = {
+    value: string
+    ttl: number
+}
+
+export type SecretCreds = {
+    id: string,
+    key: string
+}
+
+export async function validateToken(secret: SecretCreds): Promise<string> {
+    return SecureStore.getItemAsync('token').then((token) => {
+        if (token === null || isTokenExpired(token)) {
+            console.log('token is expired')
+            return fetchToken(secret)
+        }
+        else {
+            console.log('got token from local storage')
+            return token
+        }
+    })
+}
+
+async function fetchToken(secret: SecretCreds): Promise<string> {
     return fetch('https://bankaccountdata.gocardless.com/api/v2/token/new/', {
         method: 'POST',
         headers: {
@@ -26,33 +52,24 @@ export async function validateToken(secretId: string, secretKey: string): Promis
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            secret_id: secretId,
-            secret_key: secretKey,
+            secret_id: secret.id,
+            secret_key: secret.key,
         }),
     }).then(response => response.json())
         .then(json => {
             if (json.status_code !== undefined) {
-                console.log(json)
+                console.error(json)
                 throw `${json.summary} : ${json.detail}`;
             }
-            save('token', json.access);
+            console.log("fetched token")
+            saveSecure('token', json.access);
             return json.access;
         })
-
 }
 
-export async function getBankList(token: string): Promise<Bank[]> {
-    return fetch('https://bankaccountdata.gocardless.com/api/v2/institutions/?country=fr', {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`
-        }
-    }).then(response => response.json())
-        .then(json => {
-            if (json.status_code !== undefined) {
-                throw `${json.summary} : ${json.detail}`;
-            }
+export async function getBankList(secret: SecretCreds): Promise<Bank[]> {
+    return makeRequest(secret, 'https://bankaccountdata.gocardless.com/api/v2/institutions/?country=fr', 'GET', {},
+        (json) => {
             if (json instanceof Array) {
                 return json.map(obj => {
                     return { id: obj.id, name: obj.name } as Bank
@@ -62,95 +79,120 @@ export async function getBankList(token: string): Promise<Bank[]> {
                 console.log(json)
                 throw 'Impossible de parser le JSON'
             }
-        });
+        }
+    )
 }
 
-export async function getRequisitionLink(token: string, bankId: string): Promise<Requisition> {
-    return SecureStore.getItemAsync(`requisition${bankId}`)
+export async function getRequisitionLink(secret: SecretCreds, bankId: string): Promise<Requisition> {
+    return retrieveInsecure(`requisition${bankId}`)
         .then(value => {
             if (value === null) {
                 console.log(`no requisiton existing for bank:${bankId}`)
-                return fetchRequisitionLink(token, bankId);
+                return fetchRequisitionLink(secret, bankId);
             } else {
-                console.log(`using stored requisition : ${value}`)
-                return { id: value } as Requisition
+                console.log(`using stored requisition`)
+                return { id: value.id, status: value.status, link: value.link, } as Requisition
             }
         })
         .catch(reason => {
             console.log(`cannot find requisition:${bankId} : ${reason}`)
-            return fetchRequisitionLink(token, bankId);
+            return fetchRequisitionLink(secret, bankId);
         })
 }
-async function fetchRequisitionLink(token: string, bankId: string): Promise<Requisition> {
-    return fetch('https://bankaccountdata.gocardless.com/api/v2/requisitions/', {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            redirect: 'http://localhost',
-            institution_id: bankId,
-            account_selection: true
-        }),
-    }).then(response => response.json())
-        .then(json => {
-            save(`requisition${bankId}`, json.id);
-            return { id: json.id, status: json.status, link: json.link, } as Requisition;
-        });
+async function fetchRequisitionLink(secret: SecretCreds, bankId: string): Promise<Requisition> {
+    return validateToken(secret)
+        .then((token) => fetch('https://bankaccountdata.gocardless.com/api/v2/requisitions/', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                redirect: 'ovh.yanck.suivifactures://gocardless-setup',
+                institution_id: bankId,
+                account_selection: true
+            }),
+        }).then(response => response.json())
+            .then(json => {
+                let requisition = { id: json.id, status: json.status, link: json.link, } as Requisition;
+                saveInsecure(`requisition${bankId}`, requisition);
+                return requisition
+            }));
 }
 
-async function save(key: string, value: string) {
+async function saveSecure(key: string, value: string) {
     await SecureStore.setItemAsync(key, value);
 }
+async function saveInsecure(key: string, value: any): Promise<void> {
+    return Storage.setItem(key, JSON.stringify(value));
+}
+async function retrieveInsecure(key: string): Promise<any | null> {
+    const value = await Storage.getItem(key);
+    if (value === null) return null;
+    return JSON.parse(value);
+}
 
-export async function getAccountsList(token: string, requisitionId: string): Promise<Account[]> {
-    return fetch(`https://bankaccountdata.gocardless.com/api/v2/requisitions/${requisitionId}`, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`
-        }
-    }).then(response => response.json())
-        .then(json => {
+function isTokenExpired(jwt: string): boolean {
+    let token = JSON.parse(decode(jwt.split('.')[1]))
+    return Date.now() >= new Date(token.exp * 1000).getTime()
+}
+function decode(str: string): string {
+    return Buffer.from(str, 'base64').toString('binary');
+}
+
+export async function getAccountsList(secret: SecretCreds, requisitionId: string): Promise<Account[]> {
+    return makeRequest(secret, `https://bankaccountdata.gocardless.com/api/v2/requisitions/${requisitionId}`, 'GET', {},
+        (json) => {
+            //TODO status expiré ?
+            console.log(json)
+            if (json.status !== 'LN') {
+                Alert.alert('Banque non validée', "Avant de pouvoir générer la liste des comptes, il faut authoriser l'application via votre banque. Cliquer sur le bouton Étape 4 et suivez les instructions")
+                return [];
+            }
             console.log(json)
             return Promise.all(json.accounts.map(
-                (accountUUID: any) => getAccountDetails(token, accountUUID)
+                (accountUUID: any) => getAccountDetails(secret, accountUUID)
             ))
-        });
+        }
+    )
 }
 
-async function getAccountDetails(token: string, accountUUID: string): Promise<Account> {
-    return fetch(`https://bankaccountdata.gocardless.com/api/v2/accounts/${accountUUID}/details`, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`
-        }
-    }).then(response => response.json())
-        .then(json => {
-            if (json.status_code !== undefined) {
-                throw `${json.summary} : ${json.detail}`;
-            }
-            return { ...json.account, uuid: accountUUID } as Account
-        });
+export async function getRequisitionStatus(secret: SecretCreds, requisitionId: string): Promise<string> {
+    return makeRequest(secret, `https://bankaccountdata.gocardless.com/api/v2/requisitions/${requisitionId}`, 'GET', {},
+        (json) => json.status as string
+    )
 }
 
-export async function importExpensesFromAccount(token: string, accountId: string): Promise<Expense[]> {
-    return fetch(`https://bankaccountdata.gocardless.com/api/v2/accounts/c1095900-d7c2-42c8-b970-c41cbec58599/transactions`, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`
-        }
-    }).then(response => response.json())
-        .then(json => {
-            if (json.status_code !== undefined) {
-                throw `${json.summary} : ${json.detail}`;
+async function makeRequest<T>(secret: SecretCreds, url: string, method: string, headers: any, consume: (json: any) => T): Promise<T> {
+    return validateToken(secret)
+        .then((token) => fetch(url, {
+            method: method,
+            headers: {
+                ...headers,
+                Accept: 'application/json',
+                Authorization: `Bearer ${token}`
             }
-            return toExpenses(json.transactions.booked)
-        });
+        }).then(response => response.json())
+            .then(json => {
+                if (json.status_code !== undefined) {
+                    console.error(json)
+                    throw `${json.summary} : ${json.detail}`;
+                }
+                return consume(json);
+            }));
+}
+
+async function getAccountDetails(secret: SecretCreds, accountUUID: string): Promise<Account> {
+    return makeRequest(secret, `https://bankaccountdata.gocardless.com/api/v2/accounts/${accountUUID}/details`, 'GET', {},
+        (json) => { return { ...json.account, uuid: accountUUID } as Account }
+    )
+}
+
+export async function importExpensesFromAccount(secret: SecretCreds, accountId: string): Promise<Expense[]> {
+    return makeRequest(secret, `https://bankaccountdata.gocardless.com/api/v2/accounts/${accountId}/transactions`, 'GET', {},
+        (json) => toExpenses(json.transactions.booked)
+    )
 }
 
 function toExpenses(transactionList: Array<any>): Expense[] {

@@ -4,14 +4,14 @@ import { Button, Linking } from "react-native";
 type OpenURLButtonProps = {
     url: string;
     children: string;
+    disabled: boolean;
 };
 
-export default function OpenURLButton({ url, children }: OpenURLButtonProps) {
+export default function OpenURLButton({ url, children, disabled }: OpenURLButtonProps) {
     const handlePress = useCallback(async () => {
-        // Checking if the link is supported for links with custom URL scheme.
-        const supported = await Linking.canOpenURL(url);
+        console.log(url)
         await Linking.openURL(url);
     }, [url]);
 
-    return <Button title={children} onPress={handlePress} />;
+    return <Button disabled={disabled} title={children} onPress={handlePress} />;
 };

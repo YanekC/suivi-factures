@@ -4,6 +4,10 @@ import { ExpenseRow } from './ExpenseRow';
 import { DbExpense, DbExpenseToExpense as dbExpenseToExpense, Expense } from '@/model/Expense';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { ExpensesContext } from '@/helpers/ExpenseContext';
+import * as BackgroundFetch from 'expo-background-fetch';
+import { BACKGROUND_FETCH_TASK } from '@/helpers/FetchGoCardLessBackground';
+import { FontAwesome } from '@expo/vector-icons';
+import * as TaskManager from 'expo-task-manager';
 
 const styles = StyleSheet.create({
     container: {
@@ -26,8 +30,10 @@ const styles = StyleSheet.create({
 export function ExpenseTable() {
     const db = useSQLiteContext();
     const expensesContext = useContext(ExpensesContext);
+    const [isRegistered, setIsRegistered] = useState(false);
 
     useEffect(() => {
+        checkSyncStatus();
         async function setup() {
             const result = await db.getAllAsync<DbExpense>('SELECT * FROM Expenses');
             let mappedResult = result.map(dbExpenseToExpense)
@@ -35,6 +41,11 @@ export function ExpenseTable() {
         }
         setup().catch(error => console.error(error));
     }, []);
+
+    const checkSyncStatus = async () => {
+        const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
+        setIsRegistered(isRegistered);
+    };
 
     function transformExpensesToSections() {
         //GroupBy month
@@ -66,18 +77,38 @@ export function ExpenseTable() {
         return month.charAt(0).toUpperCase() + month.slice(1);
     }
 
-
+    function getRegistrationStatus() {
+        if (isRegistered) {
+            return (
+                <View style={{ flexDirection: 'row' }}>
+                    <Text>La synchronisation en arrière plan est activée </Text>
+                    <FontAwesome name="dot-circle-o" size={18} color="#00cc00" />
+                </View>
+            )
+        } else {
+            return (
+                <View style={{ flexDirection: 'row' }}>
+                    <Text>La synchronisation en arrière plan est désactivée </Text>
+                    <FontAwesome name="dot-circle-o" size={18} color="#D84040" />
+                </View>
+            )
+        }
+    }
 
     return (
-        <SectionList
-            sections={transformExpensesToSections()}
-            style={styles.container}
-            renderItem={({ item }) => (
-                <ExpenseRow key={item.id} expense={item} />
-            )}
-            renderSectionHeader={({ section: { month } }) => (
-                <Text style={styles.monthHeader}>{month}</Text>
-            )}
-        />
+        <>
+            {getRegistrationStatus()}
+            <SectionList
+                sections={transformExpensesToSections()}
+                style={styles.container}
+                renderItem={({ item }) => (
+                    <ExpenseRow key={item.id} expense={item} />
+                )}
+                renderSectionHeader={({ section: { month } }) => (
+                    <Text style={styles.monthHeader}>{month}</Text>
+                )}
+            />
+        </>
+
     );
 }
