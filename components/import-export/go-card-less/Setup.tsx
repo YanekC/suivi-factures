@@ -6,7 +6,7 @@ import { getAccountsList, getBankList, getRequisitionLink, importExpensesFromAcc
 import KeySetup from "@/components/import-export/go-card-less/KeySetup";
 import { ExpensesContext } from "@/helpers/ExpenseContext";
 import OpenURLButton from "@/components/import-export/go-card-less/OpenURLButton";
-import { getSecureStoredString } from "@/helpers/SecureStoreHelper";
+import { getSecureStoredString, saveInsecure } from "@/helpers/StorageHelper";
 import { Expense } from "@/model/Expense";
 import { importIntoDB } from "@/helpers/DbHelper";
 import { useSQLiteContext } from "expo-sqlite";
@@ -32,24 +32,20 @@ export default function GoCardLessSetup() {
     const [secretKey, setSecretKey] = useState('');
 
     useEffect(() => {
-        Promise.all([
-            getSecureStoredString(`secret_key`),
-            getSecureStoredString(`secret_id`)
-        ])
-            .then(storedValue => {
-                let key = storedValue[0];
-                let id = storedValue[1];
-                setSecretKey(key);
-                setSecretId(id);
-                if (id !== '' && key !== '') {
-                    validateToken({ id: id, key: key })
-                        .then((newToken) => {
-                            setTokenValide(true);
-                            console.log("validated token : " + newToken)
-                        }).catch(error => console.error(error))
-                }
+        let setupSecuredStoredValue = async () => {
+            let key = await getSecureStoredString(`secret_key`);
+            let id = await getSecureStoredString(`secret_id`);
+            setSecretKey(key);
+            setSecretId(id);
+            if (id !== '' && key !== '') {
+                validateToken({ id: id, key: key })
+                    .then((newToken) => {
+                        setTokenValide(true);
+                        console.log("validated token : " + newToken)
+                    }).catch(error => console.error(error))
             }
-            ).catch(error => console.error(error))
+        }
+        setupSecuredStoredValue().catch(console.error);
     }, []);
 
     useEffect(() => {
@@ -76,6 +72,7 @@ export default function GoCardLessSetup() {
 
     function generateAccountList() {
         if (selectedBank) {
+            saveInsecure(`selectedBank`, selectedBank)
             setLoading(true)
             getRequisitionLink({ id: secretId, key: secretKey }, selectedBank.id).then(requisition => {
                 console.log(requisition.id);
@@ -108,6 +105,11 @@ export default function GoCardLessSetup() {
         } else {
             Alert.alert("Veuillez selectionner un compte");
         }
+    }
+
+    function saveSelectedAccount(value: Account) {
+        setSelectedAccount(value)
+        saveInsecure(`selectedAccount${selectedBank}`, value)
     }
 
     return (
@@ -149,7 +151,7 @@ export default function GoCardLessSetup() {
                         itemStyle={styles.input}
                         enabled={accountItems.length !== 0}
                         selectedValue={selectedAccount}
-                        onValueChange={setSelectedAccount}
+                        onValueChange={saveSelectedAccount}
                     >
                         {accountItems}
                     </Picker>

@@ -1,4 +1,4 @@
-import { DbExpense, Expense } from "@/model/Expense";
+import { DbExpense, DbExpenseToExpense as dbExpenseToExpense, Expense } from "@/model/Expense";
 import { SQLiteDatabase, SQLiteRunResult } from "expo-sqlite";
 import { normalizeParams } from "expo-sqlite/src/paramUtils";
 
@@ -33,4 +33,10 @@ export async function updateExpense(db: SQLiteDatabase, newExpenses: Expense): P
         newExpenses.noFile ? 1 : 0, newExpenses.attachedFiles.join(),
         newExpenses.date.getTime(), newExpenses.amount, newExpenses.title
     )
-} 
+}
+
+export async function getMissingFilesExpenses(db: SQLiteDatabase): Promise<Expense[]> {
+    return db.getAllAsync<DbExpense>("SELECT * FROM Expenses WHERE noFile == 0 AND attachedFiles = ''")
+        .then(expensesDb => expensesDb.map(expensDb => dbExpenseToExpense(expensDb)))
+
+}

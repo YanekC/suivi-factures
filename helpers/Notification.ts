@@ -14,8 +14,7 @@ export function displayNotifiaction() {
 
     Notifications.scheduleNotificationAsync({
         content: {
-            title: 'Look at that notification',
-            body: "I'm so proud of myself!",
+            title: "Certaines opérations n'ont pas de fichiers associés"
         },
         trigger: null,
     });
