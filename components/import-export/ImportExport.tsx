@@ -1,13 +1,13 @@
-import { Expense } from "@/model/Expense";
-import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
-import { useContext, useEffect, useState } from "react";
-import { Button, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useSQLiteContext } from "expo-sqlite";
+import { useContext, useState } from "react";
+import { Alert, Button, StyleSheet, Text } from "react-native";
 import * as DocumentPicker from 'expo-document-picker';
-import { readExpenseCsv } from "@/helpers/FileHelper";
+import { createExportArchive, readExpenseCsv } from "@/helpers/FileHelper";
 import { ExpensesContext } from "@/helpers/ExpenseContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { importIntoDB } from "@/helpers/DbHelper";
+import LoadingScreen from "../LoadingScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -28,14 +28,28 @@ const styles = StyleSheet.create({
 });
 
 export default function ImportExport() {
+
+    const [loading, setLoading] = useState(false);
+
+    function handleExportButton() {
+        setLoading(true)
+        const db = useSQLiteContext();
+        //Créer le fichier csv 
+        createExportArchive(db).then(zipPath => {
+            setLoading(false)
+            Alert.alert("Le fichier est disponible !", `Chemin : ${zipPath}`)
+        }).catch(console.error)
+    }
+
     return (
         <SafeAreaView style={styles.container}>
+            <LoadingScreen loading={loading} />
             <Text style={styles.header} >Importer</Text>
             <ImportButton />
             <GoCarLessButton />
 
             <Text style={styles.header}>Exporter</Text>
-            <Button title="Exporter au format ??"></Button>
+            <Button title="Exporter" onPress={handleExportButton}></Button>
         </SafeAreaView>
     )
 };

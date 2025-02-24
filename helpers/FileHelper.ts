@@ -1,5 +1,7 @@
-import { Expense } from '@/model/Expense';
+import { DbExpense, dbExpenseToExpense, Expense } from '@/model/Expense';
 import { Directory, File, Paths } from 'expo-file-system/next';
+import { zip, unzip, unzipAssets, subscribe } from 'react-native-zip-archive';
+import { SQLiteDatabase, SQLiteRunResult } from "expo-sqlite";
 
 
 export function storeFileInAppLocalStorage(filePath: string, wantedFilePath: string): string {
@@ -51,3 +53,22 @@ function parseAmount(debit: string, credit: string): number {
     return ret;
 }
 
+export async function createExportArchive(db: SQLiteDatabase): Promise<string> {
+    const result = await db.getAllAsync<DbExpense>('SELECT * FROM Expenses');
+    let mappedResult = result.map(dbExpenseToExpense)
+    const tempFolder = new Directory(Paths.cache, Date.now().toLocaleString() + 'export_suivi_facture');
+    let exportedCSVContent = ''
+    mappedResult.forEach(expense => {
+        let fileNamesToExport = ''
+        expense.attachedFiles.forEach(fileName => {
+            let attachedFile = new File(fileName);
+            attachedFile.copy(tempFolder);
+            fileNamesToExport += attachedFile.name + ';'
+        });
+        exportedCSVContent += expense.date.toLocaleDateString() + ';' + expense.title.replaceAll(';', '_') + ';' + expense.amount + ';' + fileNamesToExport
+
+    })
+    new File(tempFolder, '_index.csv').write(exportedCSVContent);
+    let dest = new File(Paths.document, 'export.zip')
+    return zip(tempFolder.uri, dest.uri)
+}

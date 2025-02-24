@@ -21,11 +21,13 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     const selectedBank = await retrieveInsecure('selectedBank')
     const selectedAccount = await retrieveInsecure(`selectedAccount${selectedBank}`)
 
-    await importExpensesFromAccount({ id: secretId, key: secretKey }, selectedAccount.uuid)
-        .then((expenses) => {
-            return importIntoDB(db, expenses)
-        })
-        .catch(error => console.error('Cannot fecth expenses : ' + error))
+    if (secretKey !== null && secretId !== null && selectedBank !== null && selectedAccount !== null) {
+        await importExpensesFromAccount({ id: secretId, key: secretKey }, selectedAccount.uuid)
+            .then((expenses) => {
+                return importIntoDB(db, expenses)
+            })
+            .catch(error => console.error('Cannot fecth expenses : ' + error))
+    }
 
     getMissingFilesExpenses(db).then(expenses => {
         if (expenses.length !== 0) displayNotifiaction()
@@ -42,7 +44,7 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
 // Note: This does NOT need to be in the global scope and CAN be used in your React components!
 export async function registerBackgroundFetchAsync(): Promise<void> {
     return BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-        minimumInterval: 60 * 60 * 24, // 24h
+        minimumInterval: 60 * 3, // 24h
         stopOnTerminate: false, // android only,
         startOnBoot: true, // android only
     });

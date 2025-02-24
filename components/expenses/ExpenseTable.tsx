@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text, View, SectionList, StatusBar, SectionListData } from 'react-native';
 import { ExpenseRow } from './ExpenseRow';
-import { DbExpense, DbExpenseToExpense as dbExpenseToExpense, Expense } from '@/model/Expense';
+import { DbExpense, dbExpenseToExpense as dbExpenseToExpense, Expense } from '@/model/Expense';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { ExpensesContext } from '@/helpers/ExpenseContext';
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         paddingLeft: 15,
         paddingRight: 15,
-        width: '100%',
+        alignSelf: 'stretch',
         backgroundColor: 'lavender',
     },
     monthHeader: {

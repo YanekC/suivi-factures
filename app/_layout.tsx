@@ -6,6 +6,7 @@ import { useFonts } from 'expo-font';
 import { SQLiteProvider } from "expo-sqlite";
 import { ExpensesContext } from "@/helpers/ExpenseContext";
 import { Expense } from "@/model/Expense";
+import 'expo-dev-client';
 
 export default function RootLayout() {
   const [expenses, setExpenses] = useState(new Array<Expense>())

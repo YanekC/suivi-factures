@@ -1,4 +1,4 @@
-import { DbExpense, DbExpenseToExpense as dbExpenseToExpense, Expense } from "@/model/Expense";
+import { DbExpense, dbExpenseToExpense as dbExpenseToExpense, Expense } from "@/model/Expense";
 import { SQLiteDatabase, SQLiteRunResult } from "expo-sqlite";
 import { normalizeParams } from "expo-sqlite/src/paramUtils";
 

@@ -50,7 +50,7 @@ export class Expense {
 
 }
 
-export function DbExpenseToExpense(dbExpense: DbExpense): Expense {
+export function dbExpenseToExpense(dbExpense: DbExpense): Expense {
     let files = dbExpense.attachedFiles === '' ? [] : dbExpense.attachedFiles.split(',')
     return new Expense(new Date(dbExpense.date), dbExpense.title, dbExpense.amount, files, dbExpense.noFile === 1)
 }

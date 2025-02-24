@@ -41,7 +41,6 @@ export default function ExpenseConfig() {
         },
     });
 
-    const glob = useGlobalSearchParams();
     const local = useLocalSearchParams();
     const db = useSQLiteContext();
 

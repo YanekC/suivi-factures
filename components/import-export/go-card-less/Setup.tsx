@@ -6,11 +6,12 @@ import { getAccountsList, getBankList, getRequisitionLink, importExpensesFromAcc
 import KeySetup from "@/components/import-export/go-card-less/KeySetup";
 import { ExpensesContext } from "@/helpers/ExpenseContext";
 import OpenURLButton from "@/components/import-export/go-card-less/OpenURLButton";
-import { getSecureStoredString, saveInsecure } from "@/helpers/StorageHelper";
+import { getSecureStoredString, retrieveInsecure, saveInsecure } from "@/helpers/StorageHelper";
 import { Expense } from "@/model/Expense";
 import { importIntoDB } from "@/helpers/DbHelper";
 import { useSQLiteContext } from "expo-sqlite";
 import { registerBackgroundFetchAsync } from "@/helpers/FetchGoCardLessBackground";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export default function GoCardLessSetup() {
     const db = useSQLiteContext();
@@ -37,13 +38,19 @@ export default function GoCardLessSetup() {
             let id = await getSecureStoredString(`secret_id`);
             setSecretKey(key);
             setSecretId(id);
+            const selectedBank = await retrieveInsecure('selectedBank')
+            const selectedAccount = await retrieveInsecure(`selectedAccount${selectedBank}`)
             if (id !== '' && key !== '') {
                 validateToken({ id: id, key: key })
-                    .then((newToken) => {
+                    .then(() => {
                         setTokenValide(true);
-                        console.log("validated token : " + newToken)
+                        if (selectedBank !== null) {
+                            setSelectedBank(selectedBank)
+                            if (selectedAccount !== null) setSelectedAccount(selectedAccount)
+                        }
                     }).catch(error => console.error(error))
             }
+
         }
         setupSecuredStoredValue().catch(console.error);
     }, []);
@@ -114,14 +121,7 @@ export default function GoCardLessSetup() {
 
     return (
         <>
-            <Modal
-                transparent={true}
-                animationType="fade"
-                visible={loading}>
-                <View style={styles.overlay}>
-                    <ActivityIndicator size="large" color="#ffffff" />
-                </View>
-            </Modal>
+            <LoadingScreen loading={loading} />
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={styles.innerContainer}>
                     <KeySetup
