@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { importIntoDB } from "@/helpers/DbHelper";
 import LoadingScreen from "../LoadingScreen";
+import { registerBackgroundFetchAsync, unregisterBackgroundFetchAsync } from "@/helpers/FetchGoCardLessBackground";
 
 const styles = StyleSheet.create({
     container: {
@@ -30,15 +31,14 @@ const styles = StyleSheet.create({
 export default function ImportExport() {
 
     const [loading, setLoading] = useState(false);
+    const db = useSQLiteContext();
 
     function handleExportButton() {
         setLoading(true)
-        const db = useSQLiteContext();
-        //Créer le fichier csv 
         createExportArchive(db).then(zipPath => {
-            setLoading(false)
             Alert.alert("Le fichier est disponible !", `Chemin : ${zipPath}`)
-        }).catch(console.error)
+        }).catch(((error) => Alert.alert("Une erreur s'est produite lors de l'export", `Détails : ${error}`)))
+            .finally(() => setLoading(false))
     }
 
     return (
@@ -50,6 +50,9 @@ export default function ImportExport() {
 
             <Text style={styles.header}>Exporter</Text>
             <Button title="Exporter" onPress={handleExportButton}></Button>
+
+            <Button title="Activer Sync" onPress={registerBackgroundFetchAsync}></Button>
+            <Button title="Désactiver Sync" onPress={unregisterBackgroundFetchAsync}></Button>
         </SafeAreaView>
     )
 };

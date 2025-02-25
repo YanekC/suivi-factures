@@ -1,4 +1,5 @@
 import { ActivityIndicator, StyleSheet, View, Modal } from "react-native";
+
 type Props = {
     loading: boolean
 }

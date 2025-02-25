@@ -12,6 +12,7 @@ import { importIntoDB } from "@/helpers/DbHelper";
 import { useSQLiteContext } from "expo-sqlite";
 import { registerBackgroundFetchAsync } from "@/helpers/FetchGoCardLessBackground";
 import LoadingScreen from "@/components/LoadingScreen";
+import { TaskContext } from "@/helpers/TaskContext";
 
 export default function GoCardLessSetup() {
     const db = useSQLiteContext();
@@ -31,6 +32,8 @@ export default function GoCardLessSetup() {
 
     const [secretId, setSecretId] = useState('');
     const [secretKey, setSecretKey] = useState('');
+
+    const taskContext = useContext(TaskContext);
 
     useEffect(() => {
         let setupSecuredStoredValue = async () => {
@@ -105,7 +108,9 @@ export default function GoCardLessSetup() {
                 }).then((expenses) => {
                     expensesContext.setExpense(expensesContext.expenses.concat(expenses))
                     router.replace('/(tabs)');
-                    registerBackgroundFetchAsync().catch(console.error)
+                    registerBackgroundFetchAsync()
+                        .then(() => taskContext.setRegistered(true))
+                        .catch(console.error)
                 })
                 .catch(error => console.error('Cannot fecth expenses : ' + error))
                 .finally(() => setLoading(false))

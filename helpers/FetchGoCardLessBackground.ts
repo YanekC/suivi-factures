@@ -26,7 +26,12 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
             .then((expenses) => {
                 return importIntoDB(db, expenses)
             })
-            .catch(error => console.error('Cannot fecth expenses : ' + error))
+            .catch(error => {
+                console.error('Cannot fecth expenses. Unregistering Task : ' + error)
+                unregisterBackgroundFetchAsync();
+            })
+    } else {
+        console.log('No GoCardLess account configured');
     }
 
     getMissingFilesExpenses(db).then(expenses => {
@@ -44,7 +49,7 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
 // Note: This does NOT need to be in the global scope and CAN be used in your React components!
 export async function registerBackgroundFetchAsync(): Promise<void> {
     return BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-        minimumInterval: 60 * 3, // 24h
+        minimumInterval: 60 * 60 * 24, // 24h
         stopOnTerminate: false, // android only,
         startOnBoot: true, // android only
     });
@@ -53,6 +58,6 @@ export async function registerBackgroundFetchAsync(): Promise<void> {
 // 3. (Optional) Unregister tasks by specifying the task name
 // This will cancel any future background fetch calls that match the given name
 // Note: This does NOT need to be in the global scope and CAN be used in your React components!
-async function unregisterBackgroundFetchAsync() {
+export async function unregisterBackgroundFetchAsync() {
     return BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
 }

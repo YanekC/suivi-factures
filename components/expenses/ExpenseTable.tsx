@@ -8,6 +8,7 @@ import * as BackgroundFetch from 'expo-background-fetch';
 import { BACKGROUND_FETCH_TASK } from '@/helpers/FetchGoCardLessBackground';
 import { FontAwesome } from '@expo/vector-icons';
 import * as TaskManager from 'expo-task-manager';
+import { TaskContext } from '@/helpers/TaskContext';
 
 const styles = StyleSheet.create({
     container: {
@@ -30,10 +31,10 @@ const styles = StyleSheet.create({
 export function ExpenseTable() {
     const db = useSQLiteContext();
     const expensesContext = useContext(ExpensesContext);
-    const [isRegistered, setIsRegistered] = useState(false);
+
+    const taskContext = useContext(TaskContext);
 
     useEffect(() => {
-        checkSyncStatus();
         async function setup() {
             const result = await db.getAllAsync<DbExpense>('SELECT * FROM Expenses');
             let mappedResult = result.map(dbExpenseToExpense)
@@ -41,11 +42,6 @@ export function ExpenseTable() {
         }
         setup().catch(error => console.error(error));
     }, []);
-
-    const checkSyncStatus = async () => {
-        const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
-        setIsRegistered(isRegistered);
-    };
 
     function transformExpensesToSections() {
         //GroupBy month
@@ -78,7 +74,7 @@ export function ExpenseTable() {
     }
 
     function getRegistrationStatus() {
-        if (isRegistered) {
+        if (taskContext.isRegistered) {
             return (
                 <View style={{ flexDirection: 'row' }}>
                     <Text>La synchronisation en arrière plan est activée </Text>
