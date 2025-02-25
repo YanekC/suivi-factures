@@ -9,6 +9,7 @@ import { Link } from "expo-router";
 import { importIntoDB } from "@/helpers/DbHelper";
 import LoadingScreen from "../LoadingScreen";
 import { registerBackgroundFetchAsync, unregisterBackgroundFetchAsync } from "@/helpers/FetchGoCardLessBackground";
+import { TaskContext } from "@/helpers/TaskContext";
 
 const styles = StyleSheet.create({
     container: {
@@ -32,6 +33,7 @@ export default function ImportExport() {
 
     const [loading, setLoading] = useState(false);
     const db = useSQLiteContext();
+    const taskContext = useContext(TaskContext)
 
     function handleExportButton() {
         setLoading(true)
@@ -39,6 +41,15 @@ export default function ImportExport() {
             Alert.alert("Le fichier est disponible !", `Chemin : ${zipPath}`)
         }).catch(((error) => Alert.alert("Une erreur s'est produite lors de l'export", `Détails : ${error}`)))
             .finally(() => setLoading(false))
+    }
+
+    function handleRegisterTask() {
+        registerBackgroundFetchAsync()
+            .then(() => taskContext.setRegistered(true))
+    }
+    function handleUnregisterTask() {
+        unregisterBackgroundFetchAsync()
+            .then(() => taskContext.setRegistered(false))
     }
 
     return (
@@ -51,8 +62,8 @@ export default function ImportExport() {
             <Text style={styles.header}>Exporter</Text>
             <Button title="Exporter" onPress={handleExportButton}></Button>
 
-            <Button title="Activer Sync" onPress={registerBackgroundFetchAsync}></Button>
-            <Button title="Désactiver Sync" onPress={unregisterBackgroundFetchAsync}></Button>
+            <Button title="Activer Sync" onPress={handleRegisterTask}></Button>
+            <Button title="Désactiver Sync" onPress={handleUnregisterTask}></Button>
         </SafeAreaView>
     )
 };
