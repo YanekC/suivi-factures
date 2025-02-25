@@ -55,7 +55,7 @@ export default function GoCardLessSetup() {
             }
 
         }
-        setupSecuredStoredValue().catch(console.error);
+        setupSecuredStoredValue().catch(error => Alert.alert('Le fichier existe déjà !', `Vous avez déjà téléchargé ce fichier. Erreur : ${error}`));
     }, []);
 
     useEffect(() => {
@@ -110,7 +110,7 @@ export default function GoCardLessSetup() {
                     router.replace('/(tabs)');
                     registerBackgroundFetchAsync()
                         .then(() => taskContext.setRegistered(true))
-                        .catch(console.error)
+                        .catch(error => Alert.alert("Impossible de créer la tache d'arrère plan", `Détails : ${error}`))
                 })
                 .catch(error => console.error('Cannot fecth expenses : ' + error))
                 .finally(() => setLoading(false))

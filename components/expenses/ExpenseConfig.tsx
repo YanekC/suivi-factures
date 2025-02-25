@@ -59,7 +59,7 @@ export default function ExpenseConfig() {
                     return expense;
                 }
             }));
-        }).catch(console.error);
+        }).catch(error => Alert.alert("Impossible de mettre a jour la base de données", `Détails : ${error}`));
 
     }
 
@@ -74,7 +74,7 @@ export default function ExpenseConfig() {
                     return expense;
                 }
             }));
-        }).catch(console.error);
+        }).catch(error => Alert.alert("Impossible de mettre a jour la base de données", `Détails : ${error}`));
     }
 
     function setNoFileExpense(expenseToUpdate: Expense, noFile: boolean) {
@@ -88,7 +88,7 @@ export default function ExpenseConfig() {
                 }
             }));
             setChecked(noFile);
-        }).catch(console.error);
+        }).catch(error => Alert.alert("Impossible de mettre a jour la base de données", `Détails : ${error}`));
     }
 
     function handleFileButtonPress() {

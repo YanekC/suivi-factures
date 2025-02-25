@@ -86,7 +86,7 @@ export function ImportButton() {
         importIntoDB(db, expensesFromCSV)
             .then(importedExpenses =>
                 expensesContext.setExpense(expensesContext.expenses.concat(importedExpenses))
-            )
+            ).catch(error => Alert.alert("Impossible d'importer les données de la base de données", `Détails : ${error}`))
     }
 
     return (
