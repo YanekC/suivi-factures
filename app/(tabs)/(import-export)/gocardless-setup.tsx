@@ -1,7 +1,6 @@
 
 import { Stack } from "expo-router";
-import { StyleSheet, View } from "react-native";
-import GoCardLessSetup from "@/components/import-export/go-card-less/Setup";
+import GoCardLessSetup from "@/components/import-export/go-card-less/GoCardLessSetup";
 
 export default function GoCardLessSetupScreen() {
     return (

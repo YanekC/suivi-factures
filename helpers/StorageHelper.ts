@@ -1,6 +1,11 @@
 import * as SecureStore from 'expo-secure-store';
 import Storage from 'expo-sqlite/kv-store';
 
+//All stored key constants
+export const LAST_TIME_EXPENSES_VIEWED = 'last_time_expenses_viewed';
+export const NOTIFICATION_INTERVAL = 'notification_interval';
+export const SCHEDULED_NOTIFICATION_ID = 'scheduled_notification_id';
+
 export function getSecureStoredString(key: string): Promise<string> {
     return SecureStore.getItemAsync(key)
         .then(secret => {
