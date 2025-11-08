@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 export default function SettingsStackLayout() {
   return (
     <Stack>
-      <Stack.Screen name="gocardless-setup" />
+      <Stack.Screen name="global_settings" />
     </Stack>
   );
 }

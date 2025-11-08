@@ -8,6 +8,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { TaskContext } from '@/helpers/TaskContext';
 import {
   cancelScheduledNotification,
+  configureReminderNotification,
   scheduleExpenseCheckReminder,
 } from "@/helpers/Notification";
 import {
@@ -120,24 +121,3 @@ export function ExpenseTable() {
   );
 }
 
-async function configureReminderNotification() {
-  retrieveInsecure(NOTIFICATION_INTERVAL).then((retrievedInterval) => {
-    let interval = retrievedInterval;
-    if (retrievedInterval === null) {
-      //Default to 1 week
-      interval = 604800;
-      saveInsecure(NOTIFICATION_INTERVAL, interval);
-    }
-    retrieveInsecure(SCHEDULED_NOTIFICATION_ID)
-      .then((identifier) => {
-        if (identifier !== null) {
-          cancelScheduledNotification(identifier);
-        }
-      })
-      .then(() => {
-        scheduleExpenseCheckReminder(interval).then((identifier) => {
-          saveInsecure(SCHEDULED_NOTIFICATION_ID, identifier);
-        });
-      });
-  });
-}
