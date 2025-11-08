@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           java-version: "21" # The JDK version to make available on the path.
-      - uses: actions/setup-android@v3
+      - uses: android-actions/setup-android@v3
       - name: Install deps
         run: npm ci
       - name: Prebuild android native files
