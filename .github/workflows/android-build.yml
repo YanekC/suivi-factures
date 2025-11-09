@@ -5,8 +5,10 @@ on:
       - '*'
 jobs:
   Build-for-android:
-    runs-on: ubuntu-latest
     name: Build Android APK Bundle
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v6
