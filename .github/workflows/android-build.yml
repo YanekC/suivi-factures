@@ -1,8 +1,8 @@
 name: Build Android APK Bundle
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*'
 jobs:
   Build-for-android:
     runs-on: ubuntu-latest
@@ -23,3 +23,8 @@ jobs:
         run: npx expo prebuild -p android
       - name: Build android APK Bundle
         run: cd android && ./gradlew assembleRelease
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+          overwrite_files: false
