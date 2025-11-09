@@ -1,7 +1,7 @@
 import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
 import * as SQLite from "expo-sqlite";
-import { displayNotifiaction } from "./Notification";
+import { displayNotification } from "./Notification";
 import { importExpensesFromAccount } from "./GoCardLessHelper";
 import { getMissingFilesExpenses, importIntoDB } from "./DbHelper";
 import { getSecureStoredString, retrieveInsecure } from "./StorageHelper";
@@ -20,27 +20,60 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     const db = await SQLite.openDatabaseAsync("expense.db");
     const selectedBank = await retrieveInsecure("selectedBank");
     const selectedAccount = await retrieveInsecure(`selectedAccount${selectedBank}`);
-
-    if (secretKey !== null && secretId !== null && selectedBank !== null && selectedAccount !== null) {
+    let accountWellConfigured = isAccountWellConfigured(secretId, secretKey, selectedBank, selectedAccount);
+    if (accountWellConfigured) {
         await importExpensesFromAccount({ id: secretId, key: secretKey }, selectedAccount.uuid)
             .then((expenses) => {
                 return importIntoDB(db, expenses);
             })
             .catch((error) => {
-                console.error("Cannot fecth expenses. Unregistering Task : " + error);
+                console.error("Cannot fetch expenses. Unregistering Task : " + error);
+                displayNotification(
+                    "La synchronisation des dépenses a échoué. Veuillez vérifier la configuration de votre compte GoCardLess.",
+                    error.message,
+                );
                 unregisterBackgroundFetchAsync();
             });
-    } else {
-        console.log("No GoCardLess account configured");
     }
 
     getMissingFilesExpenses(db).then((expenses) => {
-        if (expenses.length !== 0) displayNotifiaction();
+        if (expenses.length !== 0)
+            displayNotification(
+                "De nouvelles dépenses ont été importées !",
+                `${expenses.length} dépenses n'ont pas de fichier attaché.`,
+            );
     });
 
     // Be sure to return the successful result type!
     return BackgroundFetch.BackgroundFetchResult.NewData;
 });
+
+function isAccountWellConfigured(
+    secretId: string | null,
+    secretKey: string | null,
+    selectedBank: string | null,
+    selectedAccount: { uuid: string } | null,
+): boolean {
+    let errorMessage: string[] = [];
+    if (secretId === null) {
+        errorMessage.push("Le Secret ID est manquant.");
+    }
+    if (secretKey === null) {
+        errorMessage.push("Le Secret Key est manquant.");
+    }
+    if (selectedBank === null) {
+        errorMessage.push("La banque sélectionnée est manquante.");
+    }
+    if (selectedAccount === null || selectedAccount.uuid === "") {
+        errorMessage.push("Le compte sélectionné est manquant.");
+    }
+    if (errorMessage.length > 0) {
+        displayNotification("Le compte GoCardLess est mal configuré", errorMessage.join("\n"));
+        console.error("Account is not well configured: " + errorMessage.join("\n"));
+        return false;
+    }
+    return true;
+}
 
 // 2. Register the task at some point in your app by providing the same name,
 // and some configuration options for how the background fetch should behave

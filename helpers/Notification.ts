@@ -11,10 +11,11 @@ Notifications.setNotificationHandler({
     }),
 });
 
-export function displayNotifiaction() {
+export function displayNotification(title: string, body: string) {
     Notifications.scheduleNotificationAsync({
         content: {
-            title: "De nouvelles dépenses ont été importées !",
+            title: title,
+            body: body,
         },
         trigger: null,
     });
