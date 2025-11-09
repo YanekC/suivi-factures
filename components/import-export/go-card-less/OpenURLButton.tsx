@@ -9,9 +9,9 @@ type OpenURLButtonProps = {
 
 export default function OpenURLButton({ url, children, disabled }: OpenURLButtonProps) {
     const handlePress = useCallback(async () => {
-        console.log(url)
+        console.log(url);
         await Linking.openURL(url);
     }, [url]);
 
     return <Button disabled={disabled} title={children} onPress={handlePress} />;
-};
+}

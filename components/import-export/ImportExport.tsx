@@ -1,7 +1,7 @@
 import { useSQLiteContext } from "expo-sqlite";
 import { useContext, useState } from "react";
 import { Alert, Button, StyleSheet, Text } from "react-native";
-import * as DocumentPicker from 'expo-document-picker';
+import * as DocumentPicker from "expo-document-picker";
 import { createExportArchive, readExpenseCsv } from "@/helpers/FileHelper";
 import { ExpensesContext } from "@/helpers/ExpenseContext";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,45 +17,44 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         paddingLeft: 15,
         paddingRight: 15,
-        width: '100%',
-        backgroundColor: 'lavender',
-        rowGap: 20
+        width: "100%",
+        backgroundColor: "lavender",
+        rowGap: 20,
     },
     header: {
         fontSize: 28,
-        backgroundColor: 'lavender',
+        backgroundColor: "lavender",
         paddingTop: 15,
-        paddingLeft: 10
-    }
+        paddingLeft: 10,
+    },
 });
 
 export default function ImportExport() {
-
     const [loading, setLoading] = useState(false);
     const db = useSQLiteContext();
-    const taskContext = useContext(TaskContext)
+    const taskContext = useContext(TaskContext);
 
     function handleExportButton() {
-        setLoading(true)
-        createExportArchive(db).then(zipPath => {
-            Alert.alert("Le fichier est disponible !", `Chemin : ${zipPath}`)
-        }).catch(((error) => Alert.alert("Une erreur s'est produite lors de l'export", `Détails : ${error}`)))
-            .finally(() => setLoading(false))
+        setLoading(true);
+        createExportArchive(db)
+            .then((zipPath) => {
+                Alert.alert("Le fichier est disponible !", `Chemin : ${zipPath}`);
+            })
+            .catch((error) => Alert.alert("Une erreur s'est produite lors de l'export", `Détails : ${error}`))
+            .finally(() => setLoading(false));
     }
 
     function handleRegisterTask() {
-        registerBackgroundFetchAsync()
-            .then(() => taskContext.setRegistered(true))
+        registerBackgroundFetchAsync().then(() => taskContext.setRegistered(true));
     }
     function handleUnregisterTask() {
-        unregisterBackgroundFetchAsync()
-            .then(() => taskContext.setRegistered(false))
+        unregisterBackgroundFetchAsync().then(() => taskContext.setRegistered(false));
     }
 
     return (
         <SafeAreaView style={styles.container}>
             <LoadingScreen loading={loading} />
-            <Text style={styles.header} >Importer</Text>
+            <Text style={styles.header}>Importer</Text>
             <ImportButton />
             <GoCarLessButton />
 
@@ -65,8 +64,8 @@ export default function ImportExport() {
             <Button title="Activer Sync" onPress={handleRegisterTask}></Button>
             <Button title="Désactiver Sync" onPress={handleUnregisterTask}></Button>
         </SafeAreaView>
-    )
-};
+    );
+}
 
 export function GoCarLessButton() {
     return (
@@ -77,30 +76,27 @@ export function GoCarLessButton() {
 }
 
 export function ImportButton() {
-
     const db = useSQLiteContext();
     const expensesContext = useContext(ExpensesContext);
 
     function onFileSelectedHandler() {
-        DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true })
-            .then((value) => {
-                value.assets?.forEach(asset => {
-                    console.log(`choosed file : ${asset.uri}`);
-                    readAndImportFile(asset.uri);
-                });
+        DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true }).then((value) => {
+            value.assets?.forEach((asset) => {
+                console.log(`choosed file : ${asset.uri}`);
+                readAndImportFile(asset.uri);
             });
+        });
     }
 
-    //TODO : Better handle errors 
+    //TODO : Better handle errors
     function readAndImportFile(uri: string) {
         let expensesFromCSV = readExpenseCsv(uri);
         importIntoDB(db, expensesFromCSV)
-            .then(importedExpenses =>
-                expensesContext.setExpense(expensesContext.expenses.concat(importedExpenses))
-            ).catch(error => Alert.alert("Impossible d'importer les données de la base de données", `Détails : ${error}`))
+            .then((importedExpenses) => expensesContext.setExpense(expensesContext.expenses.concat(importedExpenses)))
+            .catch((error) =>
+                Alert.alert("Impossible d'importer les données de la base de données", `Détails : ${error}`),
+            );
     }
 
-    return (
-        <Button title="Choisir un fichier" onPress={onFileSelectedHandler}></Button>
-    );
+    return <Button title="Choisir un fichier" onPress={onFileSelectedHandler}></Button>;
 }

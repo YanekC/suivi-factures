@@ -21,8 +21,6 @@ C'est donc pas trop production ready, mais ca suffira pour mes besoins.
    - Token expiré (S)
    - Token bientot expiré (S)
    - Synchronisation échouée (S)
-- Notifier périodiquement l'utilisateur que des entrées n'ont pas de fichier (S)
-   - Parametrer la période (S)
 - Pouvoir selectionner plusieurs dépenses pour 1 fichier (L)
 - Améliorer la gueule de l'app (M)
 - CI/CD + publish sur FDroid

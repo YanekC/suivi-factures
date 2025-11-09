@@ -1,9 +1,9 @@
 import { Stack } from "expo-router";
 
 export default function SettingsStackLayout() {
-  return (
-    <Stack>
-      <Stack.Screen name="global_settings" />
-    </Stack>
-  );
+    return (
+        <Stack>
+            <Stack.Screen name="global_settings" />
+        </Stack>
+    );
 }

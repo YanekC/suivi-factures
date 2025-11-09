@@ -4,10 +4,10 @@ import GoCardLessSetup from "@/components/import-export/go-card-less/GoCardLessS
 import SettingsScreen from "@/components/settings/SettingsScreen";
 
 export default function GlobalSettingsScreen() {
-  return (
-    <>
-      <Stack.Screen options={{ title: "Configuration de l'application" }} />
-      <SettingsScreen />
-    </>
-  );
+    return (
+        <>
+            <Stack.Screen options={{ title: "Configuration de l'application" }} />
+            <SettingsScreen />
+        </>
+    );
 }

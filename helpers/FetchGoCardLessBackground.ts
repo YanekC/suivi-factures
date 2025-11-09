@@ -1,12 +1,12 @@
-import * as BackgroundFetch from 'expo-background-fetch';
-import * as TaskManager from 'expo-task-manager';
-import * as SQLite from 'expo-sqlite';
-import { displayNotifiaction } from './Notification';
-import { importExpensesFromAccount } from './GoCardLessHelper';
-import { getMissingFilesExpenses, importIntoDB } from './DbHelper';
-import { getSecureStoredString, retrieveInsecure } from './StorageHelper';
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
+import * as SQLite from "expo-sqlite";
+import { displayNotifiaction } from "./Notification";
+import { importExpensesFromAccount } from "./GoCardLessHelper";
+import { getMissingFilesExpenses, importIntoDB } from "./DbHelper";
+import { getSecureStoredString, retrieveInsecure } from "./StorageHelper";
 
-export const BACKGROUND_FETCH_TASK = 'background-fetch-sync-gocardless';
+export const BACKGROUND_FETCH_TASK = "background-fetch-sync-gocardless";
 
 // 1. Define the task by providing a name and the function that should be executed
 // Note: This needs to be called in the global scope (e.g outside of your React components)
@@ -15,34 +15,32 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
 
     console.log(`Got background fetch call at date: ${new Date(now).toISOString()}`);
 
-    let secretKey = await getSecureStoredString(`secret_key`)
-    let secretId = await getSecureStoredString(`secret_id`)
-    const db = await SQLite.openDatabaseAsync('expense.db');
-    const selectedBank = await retrieveInsecure('selectedBank')
-    const selectedAccount = await retrieveInsecure(`selectedAccount${selectedBank}`)
+    let secretKey = await getSecureStoredString(`secret_key`);
+    let secretId = await getSecureStoredString(`secret_id`);
+    const db = await SQLite.openDatabaseAsync("expense.db");
+    const selectedBank = await retrieveInsecure("selectedBank");
+    const selectedAccount = await retrieveInsecure(`selectedAccount${selectedBank}`);
 
     if (secretKey !== null && secretId !== null && selectedBank !== null && selectedAccount !== null) {
         await importExpensesFromAccount({ id: secretId, key: secretKey }, selectedAccount.uuid)
             .then((expenses) => {
-                return importIntoDB(db, expenses)
+                return importIntoDB(db, expenses);
             })
-            .catch(error => {
-                console.error('Cannot fecth expenses. Unregistering Task : ' + error)
+            .catch((error) => {
+                console.error("Cannot fecth expenses. Unregistering Task : " + error);
                 unregisterBackgroundFetchAsync();
-            })
+            });
     } else {
-        console.log('No GoCardLess account configured');
+        console.log("No GoCardLess account configured");
     }
 
-    getMissingFilesExpenses(db).then(expenses => {
-        if (expenses.length !== 0) displayNotifiaction()
-    })
-
+    getMissingFilesExpenses(db).then((expenses) => {
+        if (expenses.length !== 0) displayNotifiaction();
+    });
 
     // Be sure to return the successful result type!
     return BackgroundFetch.BackgroundFetchResult.NewData;
 });
-
 
 // 2. Register the task at some point in your app by providing the same name,
 // and some configuration options for how the background fetch should behave
