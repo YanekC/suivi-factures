@@ -1,22 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { StyleSheet, Text, View, SectionList, StatusBar, SectionListData } from "react-native";
+import { StyleSheet, Text, View, SectionList, Button } from "react-native";
 import { ExpenseRow } from "./ExpenseRow";
 import { DbExpense, dbExpenseToExpense as dbExpenseToExpense, Expense } from "@/model/Expense";
-import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
+import { useSQLiteContext } from "expo-sqlite";
 import { ExpensesContext } from "@/helpers/ExpenseContext";
 import { FontAwesome } from "@expo/vector-icons";
 import { TaskContext } from "@/helpers/TaskContext";
-import {
-    cancelScheduledNotification,
-    configureReminderNotification,
-    scheduleExpenseCheckReminder,
-} from "@/helpers/Notification";
-import {
-    NOTIFICATION_INTERVAL,
-    retrieveInsecure,
-    saveInsecure,
-    SCHEDULED_NOTIFICATION_ID,
-} from "@/helpers/StorageHelper";
+import { Link } from "expo-router";
 
 const styles = StyleSheet.create({
     container: {
@@ -39,8 +29,10 @@ const styles = StyleSheet.create({
 export function ExpenseTable() {
     const db = useSQLiteContext();
     const expensesContext = useContext(ExpensesContext);
-
     const taskContext = useContext(TaskContext);
+
+    const [multipleSelectMode, setMultipleSelectMode] = useState(false);
+    const [selectedExpenses, setSelectedExpenses] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         async function setup() {
@@ -50,8 +42,6 @@ export function ExpenseTable() {
         }
         setup().catch((error) => console.error(error));
     }, []);
-
-    configureReminderNotification();
 
     function transformExpensesToSections() {
         //GroupBy month
@@ -103,13 +93,37 @@ export function ExpenseTable() {
         }
     }
 
+    function resetMultipleSelection() {
+        setSelectedExpenses(new Set());
+        setMultipleSelectMode(false);
+    }
+
     return (
         <>
             {getRegistrationStatus()}
+            <Button title="Annuler la sélection" onPress={resetMultipleSelection} />
+            <Link
+                href={{
+                    pathname: "/(tabs)/(expenses)/[expenseId]",
+                    params: { expenseId: Array.from(selectedExpenses).join(",") },
+                }}
+                asChild
+            >
+                <Button title="Ajouter des fichiers" />
+            </Link>
             <SectionList
                 sections={transformExpensesToSections()}
                 style={styles.container}
-                renderItem={({ item }) => <ExpenseRow key={item.id} expense={item} />}
+                renderItem={({ item }) => (
+                    <ExpenseRow
+                        key={item.id}
+                        expense={item}
+                        multipleSelectMode={multipleSelectMode}
+                        setMultipleSelectMode={setMultipleSelectMode}
+                        selectedExpenses={selectedExpenses}
+                        setSelectedExpenses={setSelectedExpenses}
+                    />
+                )}
                 renderSectionHeader={({ section: { month } }) => <Text style={styles.monthHeader}>{month}</Text>}
             />
         </>

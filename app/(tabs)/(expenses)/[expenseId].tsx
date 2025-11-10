@@ -1,4 +1,6 @@
 import ExpenseConfig from "@/components/expenses/ExpenseConfig";
+import MultipleExpenseConfig from "@/components/expenses/MultipleExpensesConfig";
+import { useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 export default function ExpenseConfigScreen() {
@@ -12,11 +14,16 @@ export default function ExpenseConfigScreen() {
             backgroundColor: "lavender",
         },
     });
+    function getConfig() {
+        if (useLocalSearchParams().expenseId.includes(",")) {
+            return <MultipleExpenseConfig />;
+        } else {
+            return <ExpenseConfig />;
+        }
+    }
     return (
         <>
-            <View style={styles.container}>
-                <ExpenseConfig />
-            </View>
+            <View style={styles.container}>{getConfig()}</View>
         </>
     );
 }
