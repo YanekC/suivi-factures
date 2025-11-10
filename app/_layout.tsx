@@ -10,7 +10,7 @@ import "expo-dev-client";
 import { TaskContext } from "@/helpers/TaskContext";
 import { BACKGROUND_FETCH_TASK } from "@/helpers/FetchGoCardLessBackground";
 import * as TaskManager from "expo-task-manager";
-import { scheduleExpenseCheckReminder } from "@/helpers/Notification";
+import { configureReminderNotification, scheduleExpenseCheckReminder } from "@/helpers/Notification";
 
 export default function RootLayout() {
     const [expenses, setExpenses] = useState(new Array<Expense>());
@@ -21,6 +21,7 @@ export default function RootLayout() {
             setIsRegistered(await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK));
         }
         setup();
+        configureReminderNotification();
     }, []);
 
     return (
