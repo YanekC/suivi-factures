@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { StyleSheet, Text, View, SectionList, Button } from "react-native";
+import { StyleSheet, Text, View, SectionList, TouchableOpacity } from "react-native";
 import { ExpenseRow } from "./ExpenseRow";
 import { DbExpense, dbExpenseToExpense as dbExpenseToExpense, Expense } from "@/model/Expense";
 import { useSQLiteContext } from "expo-sqlite";
@@ -23,6 +23,38 @@ const styles = StyleSheet.create({
         paddingTop: 15,
         paddingBottom: 5,
         paddingLeft: 10,
+    },
+    multiSelectContainer: {
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        flexDirection: "row",
+        padding: 8,
+        backgroundColor: "lavender",
+        gap: 6,
+        borderTopWidth: 1,
+        borderTopColor: "#DDD8E8",
+        zIndex: 1000,
+    },
+    cancelButton: {
+        backgroundColor: "#D84040",
+        padding: 8,
+        borderRadius: 6,
+        flex: 1,
+        alignItems: "center",
+    },
+    actionButton: {
+        backgroundColor: "#6B46C1",
+        padding: 8,
+        borderRadius: 6,
+        flex: 1,
+        alignItems: "center",
+    },
+    buttonText: {
+        color: "white",
+        fontWeight: "600",
+        fontSize: 14,
     },
 });
 
@@ -101,16 +133,6 @@ export function ExpenseTable() {
     return (
         <>
             {getRegistrationStatus()}
-            <Button title="Annuler la sélection" onPress={resetMultipleSelection} />
-            <Link
-                href={{
-                    pathname: "/(tabs)/(expenses)/multiple-expenses",
-                    params: { expenseId: Array.from(selectedExpenses) },
-                }}
-                asChild
-            >
-                <Button title="Ajouter des fichiers" />
-            </Link>
             <SectionList
                 sections={transformExpensesToSections()}
                 style={styles.container}
@@ -125,7 +147,27 @@ export function ExpenseTable() {
                     />
                 )}
                 renderSectionHeader={({ section: { month } }) => <Text style={styles.monthHeader}>{month}</Text>}
+                contentInsetAdjustmentBehavior="automatic"
+                contentContainerStyle={multipleSelectMode ? { paddingBottom: 50 } : {}}
             />
+            {multipleSelectMode && (
+                <View style={styles.multiSelectContainer}>
+                    <TouchableOpacity style={styles.cancelButton} onPress={resetMultipleSelection}>
+                        <Text style={styles.buttonText}>Annuler</Text>
+                    </TouchableOpacity>
+                    <Link
+                        href={{
+                            pathname: "/(tabs)/(expenses)/multiple-expenses",
+                            params: { expenseId: Array.from(selectedExpenses) },
+                        }}
+                        asChild
+                    >
+                        <TouchableOpacity style={styles.actionButton}>
+                            <Text style={styles.buttonText}>Ajouter fichiers</Text>
+                        </TouchableOpacity>
+                    </Link>
+                </View>
+            )}
         </>
     );
 }
