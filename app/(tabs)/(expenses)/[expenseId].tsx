@@ -1,5 +1,5 @@
-import ExpenseConfig from "@/components/expenses/ExpenseConfig";
-import MultipleExpenseConfig from "@/components/expenses/MultipleExpensesConfig";
+import ExpenseConfig from "@/components/expenses/expenses-config/ExpenseConfig";
+import MultipleExpenseConfig from "@/components/expenses/expenses-config/MultipleExpensesConfig";
 import { useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
@@ -14,12 +14,17 @@ export default function ExpenseConfigScreen() {
             backgroundColor: "lavender",
         },
     });
+
     function getConfig() {
-        if (useLocalSearchParams().expenseId.includes(",")) {
+        if (passedMultipleExpenses()) {
             return <MultipleExpenseConfig />;
         } else {
             return <ExpenseConfig />;
         }
+    }
+
+    function passedMultipleExpenses() {
+        return useLocalSearchParams().expenseId.includes(",");
     }
     return (
         <>
