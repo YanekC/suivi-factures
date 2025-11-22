@@ -1,4 +1,4 @@
-import { ExpensesContext, updateExpenseContext } from "@/helpers/ExpenseContext";
+import { ExpensesContext, updateExpenseContext, updateExpensesContext } from "@/helpers/ExpenseContext";
 import Checkbox from "expo-checkbox";
 import { Stack, useGlobalSearchParams, useLocalSearchParams } from "expo-router";
 import { useContext, useState } from "react";
@@ -7,46 +7,54 @@ import * as DocumentPicker from "expo-document-picker";
 import { deleteFileFromAppLocalStorage, storeFileInAppLocalStorage } from "@/helpers/FileHelper";
 import { Expense } from "@/model/Expense";
 import ExpenseFileRow from "../ExpenseFileRow";
-import { updateExpense } from "@/helpers/DbHelper";
+import { updateExpense, updateExpenses } from "@/helpers/DbHelper";
 import { useSQLiteContext } from "expo-sqlite";
 
 type Props = {
     styles: StyleProp<any>;
-    expense: Expense;
+    expenses: Expense[];
 };
 
 export default function ExpenseConfigFileHandling(props: Props) {
     const db = useSQLiteContext();
     const expensesContext = useContext(ExpensesContext);
 
-    const [isChecked, setChecked] = useState(props.expense?.noFile);
+    const [isChecked, setChecked] = useState(props.expenses.every((expense) => expense.noFile));
 
-    function addFileToExpense(expenseToUpdate: Expense, fileName: string) {
-        let newExpense = new Expense(
-            expenseToUpdate.date,
-            expenseToUpdate.title,
-            expenseToUpdate.amount,
-            expenseToUpdate.attachedFiles.concat([fileName]),
-            expenseToUpdate.noFile,
+    function addFileToExpenses(expensesToUpdate: Expense[], fileName: string) {
+        const updatedExpenses = expensesToUpdate.map(
+            (expenseToUpdate) =>
+                new Expense(
+                    expenseToUpdate.date,
+                    expenseToUpdate.title,
+                    expenseToUpdate.amount,
+                    expenseToUpdate.attachedFiles.concat([fileName]),
+                    expenseToUpdate.noFile,
+                ),
         );
-        updateExpense(db, newExpense)
+
+        updateExpenses(db, updatedExpenses)
             .then(() => {
-                updateExpenseContext(expensesContext, expenseToUpdate, newExpense);
+                updateExpensesContext(expensesContext, expensesToUpdate, updatedExpenses);
             })
             .catch((error) => Alert.alert("Impossible de mettre a jour la base de données", `Détails : ${error}`));
     }
 
-    function setNoFileExpense(expenseToUpdate: Expense, noFile: boolean) {
-        let newExpense = new Expense(
-            expenseToUpdate.date,
-            expenseToUpdate.title,
-            expenseToUpdate.amount,
-            expenseToUpdate.attachedFiles.concat(),
-            noFile,
+    function setNoFileExpenses(expensesToUpdate: Expense[], noFile: boolean) {
+        const updatedExpenses = expensesToUpdate.map(
+            (expenseToUpdate) =>
+                new Expense(
+                    expenseToUpdate.date,
+                    expenseToUpdate.title,
+                    expenseToUpdate.amount,
+                    expenseToUpdate.attachedFiles.concat(),
+                    noFile,
+                ),
         );
-        updateExpense(db, newExpense)
+
+        updateExpenses(db, updatedExpenses)
             .then(() => {
-                updateExpenseContext(expensesContext, expenseToUpdate, newExpense);
+                updateExpensesContext(expensesContext, expensesToUpdate, updatedExpenses);
                 setChecked(noFile);
             })
             .catch((error) => Alert.alert("Impossible de mettre a jour la base de données", `Détails : ${error}`));
@@ -56,8 +64,8 @@ export default function ExpenseConfigFileHandling(props: Props) {
         DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true }).then((value) => {
             value.assets?.forEach((asset) => {
                 try {
-                    let createdFile = storeFileInAppLocalStorage(asset.uri, props.expense?.id + "-" + asset.name);
-                    addFileToExpense(props.expense, createdFile);
+                    let createdFile = storeFileInAppLocalStorage(asset.uri, props.expenses[0]?.id + "-" + asset.name);
+                    addFileToExpenses(props.expenses, createdFile);
                 } catch (error) {
                     Alert.alert("Le fichier existe déjà !", `Vous avez déjà téléchargé ce fichier. Erreur : ${error}`, [
                         { text: "OK" },
@@ -75,7 +83,7 @@ export default function ExpenseConfigFileHandling(props: Props) {
                 <Checkbox
                     style={props.styles.checkbox}
                     value={isChecked}
-                    onValueChange={(value) => setNoFileExpense(props.expense, value)}
+                    onValueChange={(value) => setNoFileExpenses(props.expenses, value)}
                 />
                 <Text style={props.styles.paragraph}>Pas de fichier</Text>
             </View>

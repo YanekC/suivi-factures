@@ -23,3 +23,16 @@ export function updateExpenseContext(
         }),
     );
 }
+
+export function updateExpensesContext(
+    expensesContext: ExpensesContextProps,
+    expensesToUpdate: Expense[],
+    newExpenses: Expense[],
+) {
+    const newExpensesMap = new Map(newExpenses.map((expense) => [expense.id, expense]));
+    expensesContext.setExpense(
+        expensesContext.expenses.map((expense) => {
+            return newExpensesMap.get(expense.id) || expense;
+        }),
+    );
+}

@@ -80,7 +80,7 @@ export default function ExpenseConfig() {
             {expense?.attachedFiles.map((file) => (
                 <ExpenseFileRow key={file} filePath={file} deleteFile={handleDeleteFile} />
             ))}
-            <ExpenseConfigFileHandling styles={styles} expense={expense} />
+            <ExpenseConfigFileHandling styles={styles} expenses={[expense]} />
         </View>
     );
 }

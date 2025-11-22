@@ -57,3 +57,19 @@ export async function getMissingFilesExpenses(db: SQLiteDatabase): Promise<Expen
         .getAllAsync<DbExpense>("SELECT * FROM Expenses WHERE noFile == 0 AND attachedFiles = ''")
         .then((expensesDb) => expensesDb.map((expensDb) => dbExpenseToExpense(expensDb)));
 }
+
+//Généré par copilot (en gros je comprends pas comment ca marche)
+export function updateExpenses(db: SQLiteDatabase, expenses: Expense[]): Promise<void> {
+    return new Promise((resolve, reject) => {
+        db.withTransactionAsync(async () => {
+            try {
+                for (const expense of expenses) {
+                    await updateExpense(db, expense);
+                }
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    });
+}
