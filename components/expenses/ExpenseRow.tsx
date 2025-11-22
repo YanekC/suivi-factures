@@ -1,7 +1,6 @@
 import { Expense } from "@/model/Expense";
-import { Alert, Button, Pressable, StyleSheet, Text, View } from "react-native";
+import { Button, Pressable, StyleSheet, Text, View } from "react-native";
 import FileCell from "./FileCell";
-import Checkbox from "expo-checkbox";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -44,26 +43,29 @@ export function ExpenseRow(props: Props) {
 
     function getBackgroundColor() {
         if (props.multipleSelectMode) {
-            return isExpenseSelected() ? "#a0a0a0" : "lavender";
+            return isExpenseSelected() ? "#C7B8E8" : "lavender";
         } else {
             return "lavender";
         }
     }
+
     function handleLongPress() {
         props.setMultipleSelectMode(true);
         setSelected(true);
     }
-    function getCheckBox() {
+
+    function handlePress() {
         if (props.multipleSelectMode) {
-            return <Checkbox value={isExpenseSelected()} onValueChange={setSelected} />;
-        } else {
-            return null;
+            setSelected(!isExpenseSelected());
         }
     }
 
     return (
-        <Pressable style={[styles.itemView, { backgroundColor: getBackgroundColor() }]} onLongPress={handleLongPress}>
-            {getCheckBox()}
+        <Pressable
+            style={[styles.itemView, { backgroundColor: getBackgroundColor() }]}
+            onLongPress={handleLongPress}
+            onPress={handlePress}
+        >
             <Text style={[styles.text, { flex: 1 }]}>{props.expense.getHumanReadableDate()}</Text>
             <Text style={[styles.text, { flex: 10 }]}>{props.expense.title}</Text>
             <Text style={[styles.text, { flex: 3, textAlign: "right" }]}>{props.expense.amount.toString()} €</Text>
