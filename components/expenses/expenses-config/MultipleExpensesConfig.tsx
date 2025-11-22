@@ -32,7 +32,7 @@ export default function MultipleExpenseConfig() {
     return (
         <View>
             <Stack.Screen options={{ title: "Dépenses" }} />
-            <Text>{expenses.reduce((acc, expense) => acc + expense.title, ",")}</Text>
+            <Text>{expenses.map((e) => e.title).join(", ")}</Text>
             <Text>Selectionner des fichiers à ajouter à ces dépenses</Text>
             <ExpenseConfigFileHandling styles={styles} expenses={expenses} />
         </View>
