@@ -104,8 +104,8 @@ export function ExpenseTable() {
             <Button title="Annuler la sélection" onPress={resetMultipleSelection} />
             <Link
                 href={{
-                    pathname: "/(tabs)/(expenses)/[expenseId]",
-                    params: { expenseId: Array.from(selectedExpenses).join(",") },
+                    pathname: "/(tabs)/(expenses)/multiple-expenses",
+                    params: { expenseId: Array.from(selectedExpenses) },
                 }}
                 asChild
             >

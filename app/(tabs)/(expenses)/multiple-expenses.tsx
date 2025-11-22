@@ -14,9 +14,10 @@ export default function ExpenseConfigScreen() {
             backgroundColor: "lavender",
         },
     });
+
     return (
         <View style={styles.container}>
-            <ExpenseConfig />
+            <MultipleExpenseConfig />
         </View>
     );
 }
