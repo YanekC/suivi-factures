@@ -65,6 +65,11 @@ export function ExpenseTable() {
 
     const [multipleSelectMode, setMultipleSelectMode] = useState(false);
     const [selectedExpenses, setSelectedExpenses] = useState<Set<string>>(new Set());
+    const [formattedExpenses, setFormattedExpenses] = useState<Array<any>>([]);
+
+    useEffect(() => {
+        setFormattedExpenses(transformExpensesToSections());
+    }, [expensesContext.expenses]);
 
     useEffect(() => {
         async function setup() {
@@ -134,7 +139,7 @@ export function ExpenseTable() {
         <>
             {getRegistrationStatus()}
             <SectionList
-                sections={transformExpensesToSections()}
+                sections={formattedExpenses}
                 style={styles.container}
                 renderItem={({ item }) => (
                     <ExpenseRow

@@ -1,7 +1,7 @@
 import { Expense } from "@/model/Expense";
-import { Button, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import FileCell from "./FileCell";
-import { useEffect, useState } from "react";
+import { Component } from "react";
 
 type Props = {
     expense: Expense;
@@ -25,55 +25,79 @@ const styles = StyleSheet.create({
     },
 });
 
-export function ExpenseRow(props: Props) {
-    function isExpenseSelected(): boolean {
-        return props.selectedExpenses.has(props.expense.id);
+export class ExpenseRow extends Component<Props, { selected: boolean }> {
+    constructor(props: Props) {
+        super(props);
     }
 
-    function setSelected(value: boolean) {
+    shouldComponentUpdate(nextProps: Props): boolean {
+        const propsChanged =
+            this.props.expense.id !== nextProps.expense.id ||
+            this.props.expense.title !== nextProps.expense.title ||
+            this.props.expense.amount !== nextProps.expense.amount ||
+            this.props.expense.date !== nextProps.expense.date ||
+            this.props.expense.noFile !== nextProps.expense.noFile ||
+            this.props.expense.attachedFiles !== nextProps.expense.attachedFiles;
+
+        const backGroundNeedsUpdate = nextProps.multipleSelectMode === false && this.isSelected();
+
+        const selectionChanged = this.isSelected() !== nextProps.selectedExpenses.has(nextProps.expense.id);
+
+        return propsChanged || selectionChanged || backGroundNeedsUpdate;
+    }
+
+    isSelected() {
+        return this.props.selectedExpenses.has(this.props.expense.id);
+    }
+
+    setSelected(value: boolean) {
         if (value) {
-            props.setSelectedExpenses(new Set(props.selectedExpenses).add(props.expense.id));
+            this.props.setSelectedExpenses(new Set(this.props.selectedExpenses).add(this.props.expense.id));
         } else {
             //Remove expense from selected expenses
-            let newSet = new Set(props.selectedExpenses);
-            newSet.delete(props.expense.id);
-            props.setSelectedExpenses(newSet);
+            let newSet = new Set(this.props.selectedExpenses);
+            newSet.delete(this.props.expense.id);
+            this.props.setSelectedExpenses(newSet);
         }
     }
 
-    function getBackgroundColor() {
-        if (props.multipleSelectMode) {
-            return isExpenseSelected() ? "#C7B8E8" : "lavender";
+    getBackgroundColor() {
+        if (this.isSelected() && this.props.multipleSelectMode) {
+            return "#C7B8E8";
         } else {
             return "lavender";
         }
     }
 
-    function handleLongPress() {
-        props.setMultipleSelectMode(true);
-        setSelected(true);
-    }
+    handleLongPress = () => {
+        this.setSelected(true);
+        this.props.setMultipleSelectMode(true);
+    };
 
-    function handlePress() {
-        if (props.multipleSelectMode) {
-            setSelected(!isExpenseSelected());
+    handlePress = () => {
+        if (this.props.multipleSelectMode) {
+            this.setSelected(!this.isSelected());
         }
-    }
+    };
 
-    return (
-        <Pressable
-            style={[styles.itemView, { backgroundColor: getBackgroundColor() }]}
-            onLongPress={handleLongPress}
-            onPress={handlePress}
-        >
-            <Text style={[styles.text, { flex: 1 }]}>{props.expense.getHumanReadableDate()}</Text>
-            <Text style={[styles.text, { flex: 10 }]}>{props.expense.title}</Text>
-            <Text style={[styles.text, { flex: 3, textAlign: "right" }]}>{props.expense.amount.toString()} €</Text>
-            <FileCell
-                expenseFiles={props.expense.attachedFiles}
-                expenseId={props.expense.id}
-                noFileNeeded={props.expense.noFile}
-            />
-        </Pressable>
-    );
+    render() {
+        return (
+            <Pressable
+                style={[styles.itemView, { backgroundColor: this.getBackgroundColor() }]}
+                onLongPress={this.handleLongPress}
+                onPress={this.handlePress}
+            >
+                <Text style={[styles.text, { flex: 1 }]}>{this.props.expense.getHumanReadableDate()}</Text>
+                <Text style={[styles.text, { flex: 10 }]}>{this.props.expense.title}</Text>
+                <Text style={[styles.text, { flex: 3, textAlign: "right" }]}>
+                    {this.props.expense.amount.toString()} €
+                </Text>
+                <FileCell
+                    expenseFiles={this.props.expense.attachedFiles}
+                    expenseId={this.props.expense.id}
+                    noFileNeeded={this.props.expense.noFile}
+                />
+            </Pressable>
+        );
+    }
 }
